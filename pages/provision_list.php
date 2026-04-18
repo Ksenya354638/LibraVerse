@@ -1,198 +1,198 @@
 <?php
-    $db_file = "../library.db";
-    $conn = new SQLite3($db_file);
-    if (!$conn) {
-        echo "<div class='validation-msg'>
-                <img src='../images/error.svg' alt='error icon'>
-                <h2 class='validation-text'>Помилка! Не вдалося під'єднатися до бази даних</h2>     
-              </div>";
-    };
-    session_start();
-    if(isset($_SESSION['LibrarianID'])) {
-    $query1= $conn->query("SELECT COUNT(*) FROM booksProvision WHERE ReturnDate=0;");
-    $query2=$conn->query("SELECT COUNT(*) FROM booksProvision WHERE ReturnDate!=0;");
-    $query3=$conn->query("SELECT COUNT(*) FROM booksProvision;");
-    $number_not_returned = $query1->fetchArray(SQLITE3_ASSOC);
-    $number_returned = $query2->fetchArray(SQLITE3_ASSOC);
-    $number_all = $query3->fetchArray(SQLITE3_ASSOC);
-    $query = "SELECT booksProvision.ProvisionID, booksProvision.BookID, booksProvision.СustomerID, books.Title, books.AuthorID, authors.Name, authors.Surname, customers.FirstName, customers.ParentalName, customers.Surname AS cSurname, customers.PhoneNumber, booksProvision.ReceiptDate, booksProvision.ReturnDate FROM booksProvision
-    JOIN books ON books.BookID=booksProvision.BookID JOIN authors ON books.AuthorID=authors.AuthorID JOIN customers ON customers.СustomerID=booksProvision.СustomerID";
+session_start();
+
+// Параметри підключення до БД
+$host = getenv('DB_HOST') ?: 'localhost';
+$dbname = getenv('DB_NAME') ?: 'library_db';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASSWORD') ?: '';
+
+try {
+    $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Помилка підключення до бази даних");
+}
+
+if(isset($_SESSION['LibrarianID'])) {
+    
+    // 1. Отримання статистики (виправлено логіку ReturnDate)
+    // У MySQL/SQLite часто використовують NULL або порожній рядок для не повернутих книг
+    $count_not_returned = $conn->query("SELECT COUNT(*) FROM booksProvision WHERE ReturnDate IS NULL OR ReturnDate = '' OR ReturnDate = '0'")->fetchColumn();
+    $count_returned = $conn->query("SELECT COUNT(*) FROM booksProvision WHERE ReturnDate IS NOT NULL AND ReturnDate != '' AND ReturnDate != '0'")->fetchColumn();
+    $count_all = $conn->query("SELECT COUNT(*) FROM booksProvision")->fetchColumn();
+
+    // 2. Формування основного запиту
+    // Виправлено кириличну 'С' у CustomerID
+    $query = "SELECT bp.ProvisionID, bp.BookID, bp.CustomerID, b.Title, b.AuthorID, 
+                     a.Name AS aName, a.Surname AS aSurname, 
+                     c.FirstName, c.ParentalName, c.Surname AS cSurname, c.PhoneNumber, 
+                     bp.ReceiptDate, bp.ReturnDate 
+              FROM booksProvision bp
+              JOIN books b ON b.BookID = bp.BookID 
+              JOIN authors a ON b.AuthorID = a.AuthorID 
+              JOIN customers c ON c.CustomerID = bp.CustomerID";
+
+    // 3. Фільтрація
     if(isset($_POST['select'])) {
         $sort_by = $_POST['select'];
         if($sort_by === 'returned') {
-        $query .= " WHERE ReturnDate!=0;";
+            $query .= " WHERE bp.ReturnDate IS NOT NULL AND bp.ReturnDate != '' AND bp.ReturnDate != '0'";
         } elseif ($sort_by === 'not_returned') {
-        $query .= " WHERE ReturnDate=0;";
-        } elseif ($sort_by === 'all') {
-            $query;
+            $query .= " WHERE bp.ReturnDate IS NULL OR bp.ReturnDate = '' OR bp.ReturnDate = '0'";
         }
     }
-    $provisions_result = $conn->query($query);
+    
+    $query .= " ORDER BY bp.ReceiptDate DESC"; // Сортування за датою видачі
+    $provisions = $conn->query($query)->fetchAll(PDO::FETCH_ASSOC);
+
     if (isset($_GET['logOut'])){
-        session_unset();
-        header("Location: ./librarian_authorization.php");
+        session_destroy();
+        header("Location: ../index.php");
+        exit;
     }
 ?>
 <!DOCTYPE html>
 <html lang="uk_UA">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link href="https://fonts.cdnfonts.com/css/roboto" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
-    <script src="../js/script.js"></script>
-    <title>LibraVerse</title>
+    <title>Видача книг | LibraVerse</title>
 </head>
 <body>
     <nav class="navbar navbar-default">
         <div class="container-fluid">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed visible-xs" data-toggle="collapse"
-                 data-target="#menu" aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#menu">
+                    <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
                 </button>
                 <div class="navbar-logo">
                     <img src="../images/logo.svg" alt="логотип">
-                    <a href="http://localhost/LibraVerse/pages/home.php" id="main">LibraVerse</a>
+                    <a href="./home.php" id="main">LibraVerse</a>
                 </div>
             </div>
             <div class="collapse navbar-collapse" id="menu">
                 <ul class="nav navbar-nav navbar-right text-center">
-                  <li><a href="http://localhost/LibraVerse/pages/home.php" id="main">Головна</a></li>
-                  <li><a href="http://localhost/LibraVerse/pages/customers_list.php" id="customers">Клієнти</a></li>
-                  <li><a href="http://localhost/LibraVerse/pages/books_list.php" id="books">Книги</a></li>
-                  <li><a href="http://localhost/LibraVerse/pages/author_list.php" id="authors">Автори</a></li> 
-                  <li><a href="http://localhost/LibraVerse/pages/librarians_list.php" id="librarians">Працівники</a></li>
-                  <li><a href="http://localhost/LibraVerse/pages/provision_list.php" id="provision">Видача книг</a></li>
-                  <li><a href="?logOut=<?php echo ($_SESSION['LibrarianID']); ?>" id="logOut">Вийти</a></li>
+                  <li><a href="./home.php">Головна</a></li>
+                  <li><a href="./customers_list.php">Клієнти</a></li>
+                  <li><a href="./books_list.php">Книги</a></li>
+                  <li><a href="./author_list.php">Автори</a></li> 
+                  <li><a href="./librarians_list.php">Працівники</a></li>
+                  <li><a href="./provision_list.php">Видача книг</a></li>
+                  <li><a href="?logOut=1" id="logOut">Вийти</a></li>
                 </ul>
             </div>
         </div>
     </nav>
-    <div class="main-content">
+
+    <div class="container main-content">
         <div class="table-header">
-            <h1 class="text-center">Список виданих книг</h1>
+            <h1 class="text-center">Журнал видачі книг</h1>
         </div>
-        <div class="col-lg-12 text">
-            <p><b>Кількість не повернених книг: </b><?php echo $number_not_returned ['COUNT(*)']; ?></p>
-            <p><b>Кількість повернених книг: </b><?php echo $number_returned ['COUNT(*)']; ?></p>
-            <p><b>Кількість виданих книг: </b><?php echo $number_all ['COUNT(*)']; ?></p>
+
+        <div class="row info-stats" style="margin-bottom: 20px;">
+            <div class="col-md-4">
+                <div class="well text-center">
+                    <h4>Не повернуто</h4>
+                    <span class="h3 text-danger"><?php echo $count_not_returned; ?></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="well text-center">
+                    <h4>Повернуто</h4>
+                    <span class="h3 text-success"><?php echo $count_returned; ?></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="well text-center">
+                    <h4>Всього видач</h4>
+                    <span class="h3"><?php echo $count_all; ?></span>
+                </div>
+            </div>
         </div>
-        <div class="col-lg-12">
-            <form class="menu" action="" method="POST">
-                <button  type="submit" name="select" value="not_returned">Лише не повернені книги</button>
-                <button type="submit" name="select" value="returned">Лише повернені книги</button>
-                <button type="submit" name="select" value="all">Усі видачі книг</button>
-            </form>
+
+        <div class="row" style="margin-bottom: 20px;">
+            <div class="col-lg-12">
+                <form class="btn-group btn-group-justified" method="POST">
+                    <div class="btn-group"><button type="submit" name="select" value="not_returned" class="btn btn-default">Тільки заборгованості</button></div>
+                    <div class="btn-group"><button type="submit" name="select" value="returned" class="btn btn-default">Тільки повернуті</button></div>
+                    <div class="btn-group"><button type="submit" name="select" value="all" class="btn btn-primary">Усі записи</button></div>
+                </form>
+            </div>
         </div>
-        <div class="col-lg-12">
-            <div class="table">
-                <table class="result-table col-lg-12">
-                    <tr>
-                        <th>ID</th>
-                        <th>Книга</th>
-                        <th>Автор</th>
-                        <th>Клієнт</th>
-                        <th>Номер телефону</th>
-                        <th>Дата видачі</th>
-                        <th>Дата повернення</th>
-                    </tr>
-                    <?php while ($row =$provisions_result->fetchArray(SQLITE3_ASSOC)) { ?>
-                    <tr>
-                        <td><?php echo $row['ProvisionID']; ?></td>
-                        <td><a href="http://localhost/LibraVerse/pages/book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo $row['Title']; ?></a></td>
-                        <td><a href="http://localhost/LibraVerse/pages/author_profile.php?AuthorID=<?php echo $row['AuthorID']; ?>"><?php echo $row['Name']; ?> <?php echo $row['Surname']; ?></a></td>
-                        <td><a href="http://localhost/LibraVerse/pages/customer_profile.php?CustomerID=<?php echo $row['СustomerID']; ?>"><?php echo $row['FirstName']; ?> <?php echo $row['ParentalName']; ?> <?php echo $row['cSurname']; ?></a></td>
-                        <td><a href="http://localhost/LibraVerse/pages/customer_profile.php?CustomerID=<?php echo $row['СustomerID']; ?>"><?php echo $row['PhoneNumber']; ?></a></td>
-                        <td><?php echo $row['ReceiptDate']; ?></td>
-                        <td><?php echo $row['ReturnDate']; ?></td>
-                    </tr>
-                <?php  } ?>
-                </table>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table class="result-table table table-bordered">
+                        <thead>
+                            <tr class="active">
+                                <th>ID</th>
+                                <th>Книга</th>
+                                <th>Автор</th>
+                                <th>Клієнт</th>
+                                <th>Телефон</th>
+                                <th>Видано</th>
+                                <th>Повернуто</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($provisions as $row): 
+                                $is_returned = ($row['ReturnDate'] && $row['ReturnDate'] != '0');
+                            ?>
+                            <tr class="<?php echo $is_returned ? '' : 'warning'; ?>">
+                                <td><?php echo $row['ProvisionID']; ?></td>
+                                <td><a href="book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></td>
+                                <td><a href="author_profile.php?AuthorID=<?php echo $row['AuthorID']; ?>"><?php echo "{$row['aName']} {$row['aSurname']}"; ?></a></td>
+                                <td><a href="customer_profile.php?CustomerID=<?php echo $row['CustomerID']; ?>"><?php echo "{$row['FirstName']} {$row['cSurname']}"; ?></a></td>
+                                <td><?php echo htmlspecialchars($row['PhoneNumber']); ?></td>
+                                <td><?php echo $row['ReceiptDate']; ?></td>
+                                <td>
+                                    <?php echo $is_returned ? $row['ReturnDate'] : '<b class="text-danger">В чит. залі</b>'; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+
     <footer class="footer col-lg-12">
         <div class="col-lg-9 footer-left">
             <p>Слідкуйте за нами:</p>
-            <a href="https://www.facebook.com/?locale=uk_UA">
-                <img src="../images/icon_facebook.svg" alt="фейсбук">
-            </a>
-            <a href="https://www.instagram.com/">
-                <img src="../images/icon-instagram.svg" alt="інстаграм">
-            </a>
-            <a href="https://twitter.com/?lang=uk">
-                <img src="../images/icon-twitterx.svg" alt="ікс">
-            </a>
+            <a href="#"><img src="../images/icon_facebook.svg" alt="фейсбук"></a>
+            <a href="#"><img src="../images/icon-instagram.svg" alt="інстаграм"></a>
+            <a href="#"><img src="../images/icon-twitterx.svg" alt="ікс"></a>
         </div>
         <div class="col-lg-3">
             <p>Зв’яжіться з нами: +380-88-675-89-12</p>
         </div>
         <div class="col-lg-12 text-center">
-            <p>© 2024 LibraVerse. Всі права захищені.</p>
+            <p>© 2026 LibraVerse. Всі права захищені.</p>
         </div>
     </footer>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
 </body>
 </html>
 <?php
-    } else {
+} else {
+    // Сторінка для неавторизованих
 ?>
 <!DOCTYPE html>
 <html lang="uk_UA">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <link href="https://fonts.cdnfonts.com/css/roboto" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
-    <script src="../js/script.js"></script>
-    <title>LibraVerse</title>
-</head>
+<head><meta charset="UTF-8"><link rel="stylesheet" href="../css/styles.css"><title>Помилка</title></head>
 <body>
-    <div class="main-content error-msg" id="main-content">
-        <img src="../images/error.svg" alt="error icon">
-        <div class="error-text">
-            <h1>Помилка! Ви не авторизовані</h1>
-            <p>Поверніться до <a href="http://localhost/LibraVerse/">сторінки авторизації працівника</a></p>
-        </div>
+    <div class="container text-center" style="margin-top: 100px;">
+        <h1>Помилка! Ви не авторизовані</h1>
+        <p><a href="../index.php">Увійти в систему</a></p>
     </div>
-    <footer class="footer col-lg-12">
-        <div class="col-lg-9 footer-left">
-            <p>Слідкуйте за нами:</p>
-            <a href="https://www.facebook.com/?locale=uk_UA">
-                <img src="../images/icon_facebook.svg" alt="фейсбук">
-            </a>
-            <a href="https://www.instagram.com/">
-                <img src="../images/icon-instagram.svg" alt="інстаграм">
-            </a>
-            <a href="https://twitter.com/?lang=uk">
-                <img src="../images/icon-twitterx.svg" alt="ікс">
-            </a>
-        </div>
-        <div class="col-lg-3">
-            <p>Зв’яжіться з нами: +380-88-675-89-12</p>
-        </div>
-        <div class="col-lg-12 text-center">
-            <p>© 2024 LibraVerse. Всі права захищені.</p>
-        </div>
-    </footer>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
 </body>
 </html>
-<?php
-    }
- $conn->close();
- ?>
+<?php } ?>
