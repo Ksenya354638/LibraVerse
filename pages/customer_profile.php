@@ -18,23 +18,21 @@ if(isset($_SESSION['LibrarianID'])) {
         $stmt->execute([$customerID]);
         $customer = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // 2. Книги, що зараз на руках (ReturnDate = 0)
-        // ВИПРАВЛЕНО: назва таблиці booksprovision
+        // 2. Книги, що зараз на руках (ReturnDate порожня/NULL)
         $stmtActive = $conn->prepare("SELECT bp.ProvisionID, bp.BookID, bp.LibrarianID, b.Title, l.FirstName, l.Surname, bp.ReceiptDate 
             FROM booksprovision bp 
             JOIN books b ON bp.BookID = b.BookID 
             JOIN librarians l ON bp.LibrarianID = l.LibrarianID 
-            WHERE bp.CustomerID = ? AND bp.ReturnDate = '0'");
+            WHERE bp.CustomerID = ? AND bp.ReturnDate IS NULL"); // ВИПРАВЛЕНО ТУТ
         $stmtActive->execute([$customerID]);
 
-        // 3. Історія (ReturnDate != 0)
-        // ВИПРАВЛЕНО: назва таблиці booksprovision
+        // 3. Історія (ReturnDate заповнена)
         $stmtHistory = $conn->prepare("SELECT bp.ProvisionID, bp.BookID, b.Title, l.FirstName, l.Surname, bp.ReceiptDate, bp.ReturnDate 
             FROM booksprovision bp 
             JOIN books b ON bp.BookID = b.BookID 
             JOIN librarians l ON bp.LibrarianID = l.LibrarianID 
-            WHERE bp.CustomerID = ? AND bp.ReturnDate != '0'
-            ORDER BY bp.ReturnDate DESC");
+            WHERE bp.CustomerID = ? AND bp.ReturnDate IS NOT NULL 
+            ORDER BY bp.ReturnDate DESC"); // ВИПРАВЛЕНО ТУТ
         $stmtHistory->execute([$customerID]);
 
         // --- ЛОГІКА ДІЙ ---
