@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Отримання параметрів з оточення
 $host = getenv('DB_HOST');
 $dbname = getenv('DB_NAME');
 $user = getenv('DB_USER');
@@ -9,38 +8,36 @@ $pass = getenv('DB_PASSWORD');
 $port = getenv('DB_PORT') ?: '3306'; 
 
 try {
-    // Вказуємо порт прямо у рядку підключення (DSN)
     $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
     $conn = new PDO($dsn, $user, $pass, [
-        PDO::ATTR_TIMEOUT => 7, // Збільшуємо таймаут для складних запитів
+        PDO::ATTR_TIMEOUT => 7,
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]);
 } catch (PDOException $e) {
-    // Виводимо системну помилку лише для налагодження, якщо потрібно
-    die("Помилка підключення до бази даних. Спробуйте оновити сторінку.");
+    die("Помилка підключення до бази даних.");
 }
 
 if(isset($_SESSION['LibrarianID'])) {
     
-    // 1. Оптимізоване отримання статистики одним запитом
+    // 1. Оптимізована статистика 
     $stats = $conn->query("
         SELECT 
             SUM(CASE WHEN ReturnDate IS NULL OR ReturnDate = '' OR ReturnDate = '0' THEN 1 ELSE 0 END) as not_returned,
             SUM(CASE WHEN ReturnDate IS NOT NULL AND ReturnDate != '' AND ReturnDate != '0' THEN 1 ELSE 0 END) as returned,
             COUNT(*) as total
-        FROM booksProvision
+        FROM booksprovision
     ")->fetch(PDO::FETCH_ASSOC);
 
     $count_not_returned = $stats['not_returned'] ?? 0;
     $count_returned = $stats['returned'] ?? 0;
     $count_all = $stats['total'] ?? 0;
 
-    // 2. Формування основного запиту
+    // 2. Формування основного запиту 
     $query = "SELECT bp.ProvisionID, bp.BookID, bp.CustomerID, b.Title, b.AuthorID, 
                      a.Name AS aName, a.Surname AS aSurname, 
                      c.FirstName, c.ParentalName, c.Surname AS cSurname, c.PhoneNumber, 
                      bp.ReceiptDate, bp.ReturnDate 
-              FROM booksProvision bp
+              FROM booksprovision bp
               JOIN books b ON b.BookID = bp.BookID 
               JOIN authors a ON b.AuthorID = a.AuthorID 
               JOIN customers c ON c.CustomerID = bp.CustomerID";
