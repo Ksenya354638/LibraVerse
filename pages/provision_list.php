@@ -17,12 +17,10 @@ try {
     die("Помилка підключення до бази даних.");
 }
 
+// Перевірка авторизації (одна дужка { )
 if(isset($_SESSION['LibrarianID'])) {
     
-    if(isset($_SESSION['LibrarianID'])) {
-    
-    // 1. Статистика з виправленою перевіркою дат (Line 23-30)
-    // Ми прибираємо порівняння з '' та '0', залишаючи перевірку на NULL
+    // 1. Статистика
     $stats = $conn->query("
         SELECT 
             SUM(CASE WHEN ReturnDate IS NULL THEN 1 ELSE 0 END) as not_returned,
@@ -45,7 +43,7 @@ if(isset($_SESSION['LibrarianID'])) {
               JOIN authors a ON b.AuthorID = a.AuthorID 
               JOIN customers c ON c.CustomerID = bp.CustomerID";
 
-    // 3. Фільтрація з виправленими умовами
+    // 3. Фільтрація
     $filter = "";
     if(isset($_POST['select'])) {
         $sort_by = $_POST['select'];
@@ -194,4 +192,5 @@ if(isset($_SESSION['LibrarianID'])) {
 } else {
     header("Location: ../index.php");
     exit;
-} ?>
+} 
+?>
