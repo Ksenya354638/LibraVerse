@@ -1,242 +1,202 @@
 <?php
-    $db_file = "../library.db";
-    $conn = new SQLite3($db_file);
-    if (!$conn) {
-        echo "<div class='validation-msg'>
-                <img src='../images/error.svg' alt='error icon'>
-                <h2 class='validation-text'>Помилка! Не вдалося під'єднатися до бази даних</h2>     
-              </div>";
-    };
-    session_start();
-    if(isset($_SESSION['LibrarianID'])) {
-    $query = "SELECT books.BookID, authors.AuthorID, books.BookCover, books.Title, authors.Name, authors.Surname, books.Status FROM books JOIN authors ON books.AuthorID=authors.AuthorID";
-    if(isset($_POST['sort'])) {
-        $sort_by = $_POST['sort'];
-        if ($sort_by === 'fiction') {
-        $query .= " WHERE books.Category='художня';";
-        } elseif ($sort_by === 'medical') {
-            $query .= " WHERE books.Category='медична';";
-        } elseif ($sort_by === 'technical') {
-            $query .= " WHERE books.Category='технічна';";
-        } elseif ($sort_by === 'economic') {
-            $query .= " WHERE books.Category='економічна';";
-        } elseif ($sort_by === 'computer') {
-            $query .= " WHERE books.Category='компютерна';";
-        } elseif ($sort_by === 'natural') {
-            $query .= " WHERE books.Category='природознавча';";
-        } elseif ($sort_by === 'legal') {
-            $query .= " WHERE books.Category='юридична';";
-        } elseif ($sort_by === 'general') {
-            $query .= " WHERE books.Category='загальна';";
-        }
+session_start();
+
+// Налаштування підключення до БД (PDO)
+$host = getenv('DB_HOST');
+$port = getenv('DB_PORT');
+$dbname = getenv('DB_NAME');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASSWORD');
+
+try {
+    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+    $conn = new PDO($dsn, $user, $pass);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("<div class='validation-msg'><h2>Помилка підключення!</h2></div>");
+}
+
+// Перевірка авторизації
+if (isset($_SESSION['LibrarianID'])) {
+    
+    // Логіка фільтрації категорій
+    $category_map = [
+        'fiction'   => 'художня',
+        'medical'   => 'медична',
+        'technical' => 'технічна',
+        'economic'  => 'економічна',
+        'computer'  => 'комп\'ютерна',
+        'natural'   => 'природознавча',
+        'legal'     => 'юридична',
+        'general'   => 'загальна'
+    ];
+
+    $query = "SELECT b.BookID, b.BookCover, b.Title, b.Status, a.AuthorID, a.Name, a.Surname 
+              FROM books b 
+              JOIN authors a ON b.AuthorID = a.AuthorID";
+    
+    $params = [];
+    if (isset($_POST['sort']) && array_key_exists($_POST['sort'], $category_map)) {
+        $query .= " WHERE b.Category = :category";
+        $params[':category'] = $category_map[$_POST['sort']];
     }
-    $books_result = $conn->query($query);
-    if(isset($_POST['provide'])) {
-        $_SESSION['BookID'] = $_POST['BookID'];
-        if(isset($_SESSION['CustomerID']) && isset($_SESSION['LibrarianID'])) {
-            $BookID = $_SESSION['BookID'];
-            $CustomerID = $_SESSION['CustomerID'];
-            $LibrarianID = $_SESSION['LibrarianID'];
-            $ReceiptDate = date("Y-m-d");
-            $ReturnDate = 0;
 
-            $query_create = $conn->prepare("INSERT INTO booksProvision(BookID,СustomerID,LibrarianID,ReceiptDate,ReturnDate) VALUES (:BookID, :СustomerID, :LibrarianID, :ReceiptDate, :ReturnDate )");
-            $query_create->bindValue(':BookID', $BookID, SQLITE3_INTEGER);
-            $query_create->bindValue(':СustomerID', $_SESSION['CustomerID'], SQLITE3_INTEGER);
-            $query_create->bindValue(':LibrarianID', $LibrarianID, SQLITE3_INTEGER);
-            $query_create->bindValue(':ReceiptDate', $ReceiptDate, SQLITE3_TEXT);
-            $query_create->bindValue(':ReturnDate', $ReturnDate, SQLITE3_TEXT);
-            $query_create->execute();
-            $query_create2 = $conn->prepare("UPDATE books SET Status='на руках' WHERE BookID=:BookID;");
-            $query_create2->bindValue(':BookID', $BookID, SQLITE3_INTEGER);
-            $query_create2->execute();
-            echo "<div class='validation-msg done'>
-                        <img src='../images/done.svg' alt='error icon'>
-                        <h2 class='validation-text'>Книгу успішно видано користувачу</h2>     
-                  </div>";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($params);
+
+    // Логіка видачі книги (якщо обрано клієнта)
+    if (isset($_POST['provide'])) {
+        if (isset($_SESSION['CustomerID'])) {
+            $bookID = $_POST['BookID'];
+            $customerID = $_SESSION['CustomerID'];
+            $librarianID = $_SESSION['LibrarianID'];
+            $date = date("Y-m-d");
+
+            $provideStmt = $conn->prepare("INSERT INTO booksProvision (BookID, CustomerID, LibrarianID, ReceiptDate, ReturnDate) 
+                                           VALUES (?, ?, ?, ?, '0')");
+            $provideStmt->execute([$bookID, $customerID, $librarianID, $date]);
+
+            $updateStmt = $conn->prepare("UPDATE books SET Status = 'на руках' WHERE BookID = ?");
+            $updateStmt->execute([$bookID]);
+
             unset($_SESSION['CustomerID']);
-            unset($_SESSION['BookID']);
-
+            header("Location: ./provision_list.php");
+            exit;
         } else {
-            echo "Обреіть клієнта, якому небхідно вибрати книгу";
-            header("Location: ./customers_list.php");
+            header("Location: ./customers_list.php?msg=select_customer");
             exit;
         }
     }
-    if (isset($_GET['logOut'])){
-        session_unset();
-        header("Location: ./librarian_authorization.php");
+
+    // Логаут
+    if (isset($_GET['logOut'])) {
+        session_destroy();
+        header("Location: ../index.php");
+        exit;
     }
 ?>
 <!DOCTYPE html>
 <html lang="uk_UA">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link href="https://fonts.cdnfonts.com/css/roboto" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
-    <script src="../js/script.js"></script>
-    <title>LibraVerse</title>
+    <title>LibraVerse - Каталог книг</title>
 </head>
 <body>
     <nav class="navbar navbar-default">
         <div class="container-fluid">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed visible-xs" data-toggle="collapse"
-                 data-target="#menu" aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#menu">
+                    <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
                 </button>
                 <div class="navbar-logo">
                     <img src="../images/logo.svg" alt="логотип">
-                    <a href="http://localhost/LibraVerse/pages/home.php" id="main">LibraVerse</a>
+                    <a href="./home.php" id="main">LibraVerse</a>
                 </div>
             </div>
             <div class="collapse navbar-collapse" id="menu">
                 <ul class="nav navbar-nav navbar-right text-center">
-                  <li><a href="http://localhost/LibraVerse/pages/home.php" id="main">Головна</a></li>
-                  <li><a href="http://localhost/LibraVerse/pages/customers_list.php" id="customers">Клієнти</a></li>
-                  <li><a href="http://localhost/LibraVerse/pages/books_list.php" id="books">Книги</a></li>
-                  <li><a href="http://localhost/LibraVerse/pages/author_list.php" id="authors">Автори</a></li> 
-                  <li><a href="http://localhost/LibraVerse/pages/librarians_list.php" id="librarians">Працівники</a></li>
-                  <li><a href="http://localhost/LibraVerse/pages/provision_list.php" id="provision">Видача книг</a></li>
-                  <li><a href="?logOut=<?php echo ($_SESSION['LibrarianID']); ?>" id="logOut">Вийти</a></li>
+                  <li><a href="./home.php">Головна</a></li>
+                  <li><a href="./customers_list.php">Клієнти</a></li>
+                  <li><a href="./books_list.php">Книги</a></li>
+                  <li><a href="./author_list.php">Автори</a></li> 
+                  <li><a href="./librarians_list.php">Працівники</a></li>
+                  <li><a href="./provision_list.php">Видача книг</a></li>
+                  <li><a href="?logOut=1" id="logOut">Вийти</a></li>
                 </ul>
             </div>
         </div>
     </nav>
-    <div class="main-content">
-        <div class="table-header">
-            <h1 class="text-center">Книжковий каталог</h1>
-        </div>
-        <div>
+
+    <div class="main-content container">
+        <h1 class="text-center">Книжковий каталог</h1>
+        
+        <div class="row">
             <div class="col-lg-3">
                 <div class="side-menu">
-                    <form action="" method="POST">
-                        <h3 class="">Оберіть категорію</h3>
-                        <button  type="submit" name="sort" value="fiction">художня література</button><br>
-                        <button  type="submit" name="sort" value="medical">медична література</button><br>
-                        <button  type="submit" name="sort" value="technical">технічна література</button><br>
-                        <button  type="submit" name="sort" value="economic">економічна література</button><br>
-                        <button  type="submit" name="sort" value="computer">комп'ютерна література</button><br>
-                        <button  type="submit" name="sort" value="natural'">природознавча література</button><br>
-                        <button  type="submit" name="sort" value="legal">юридична література</button><br>
-                        <button  type="submit" name="sort" value="general">загальноосвітня література</button><br>
+                    <form method="POST">
+                        <h3>Оберіть категорію</h3>
+                        <button type="submit" name="sort" value="all" class="btn btn-link">Всі книги</button><br>
+                        <button type="submit" name="sort" value="fiction" class="btn btn-link">Художня література</button><br>
+                        <button type="submit" name="sort" value="medical" class="btn btn-link">Медична література</button><br>
+                        <button type="submit" name="sort" value="technical" class="btn btn-link">Технічна література</button><br>
+                        <button type="submit" name="sort" value="economic" class="btn btn-link">Економічна література</button><br>
+                        <button type="submit" name="sort" value="computer" class="btn btn-link">Комп'ютерна література</button><br>
+                        <button type="submit" name="sort" value="natural" class="btn btn-link">Природознавча література</button><br>
+                        <button type="submit" name="sort" value="legal" class="btn btn-link">Юридична література</button><br>
                     </form>
                 </div>
-                <div class="button">
-                    <a href="http://localhost/LibraVerse/pages/new_book.php" class="add">додати книгу</a>
+                <div class="mt-4">
+                    <a href="./new_book.php" class="btn btn-primary btn-block">Додати книгу</a>
                 </div>                
             </div>
-            <div class="col-lg-9 row books-list">
-            <?php while ($books = $books_result->fetchArray(SQLITE3_ASSOC)) { ?>
-                <div class="about-book col-lg-4">
-                    <div class="book-cover">
-                        <img src="<?php echo $books['BookCover']; ?>" alt="фото обкладинки">
-                    </div>
-                    <div class="book-description">
-                        <h3><a href="http://localhost/LibraVerse/pages/book_profile.php?BookID=<?php echo $books['BookID']; ?>"><?php echo $books['Title']; ?></a></h3>
-                        <p class="author"><a href="http://localhost/LibraVerse/pages/author_profile.php?AuthorID=<?php echo $books['AuthorID']; ?>"><?php echo $books['Name']; ?> <?php echo $books['Surname']; ?></a></p>
-                        <div>
-                            <div class="col-lg-6">
-                                <?php if ($books['Status'] === 'в наявності') {?>
-                                    <form method="POST">
-                                        <input type="hidden" name="BookID" value="<?php echo $books['BookID']; ?>">
-                                        <button class="provide" type="submit" name="provide" value="Видати">Видати</button>
-                                    </form>
-                                <?php } ?>
-                            </div>
-                            <div class="col-lg-6">
-                                <p class="status"><?php echo $books['Status']; ?></p>
-                            </div>
 
+            <div class="col-lg-9 books-list">
+                <div class="row">
+                <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { ?>
+                    <div class="about-book col-md-4 col-sm-6">
+                        <div class="book-cover">
+                            <img src="<?php echo htmlspecialchars($row['BookCover']); ?>" alt="обкладинка" class="img-responsive">
                         </div>
-                    </div>                    
+                        <div class="book-description">
+                            <h4><a href="./book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></h4>
+                            <p class="author">
+                                <a href="./author_profile.php?AuthorID=<?php echo $row['AuthorID']; ?>">
+                                    <?php echo htmlspecialchars($row['Name'] . ' ' . $row['Surname']); ?>
+                                </a>
+                            </p>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <?php if ($row['Status'] === 'в наявності') { ?>
+                                        <form method="POST">
+                                            <input type="hidden" name="BookID" value="<?php echo $row['BookID']; ?>">
+                                            <button class="btn btn-sm btn-success" type="submit" name="provide">Видати</button>
+                                        </form>
+                                    <?php } ?>
+                                </div>
+                                <div class="col-xs-6">
+                                    <span class="label <?php echo ($row['Status'] === 'в наявності') ? 'label-success' : 'label-warning'; ?>">
+                                        <?php echo htmlspecialchars($row['Status']); ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>                    
+                    </div>
+                <?php } ?>
                 </div>
-            <?php }?>
             </div>
         </div>
     </div>
-    <footer class="footer col-lg-12">
-        <div class="col-lg-9 footer-left">
-            <p>Слідкуйте за нами:</p>
-            <a href="https://www.facebook.com/?locale=uk_UA">
-                <img src="../images/icon_facebook.svg" alt="фейсбук">
-            </a>
-            <a href="https://www.instagram.com/">
-                <img src="../images/icon-instagram.svg" alt="інстаграм">
-            </a>
-            <a href="https://twitter.com/?lang=uk">
-                <img src="../images/icon-twitterx.svg" alt="ікс">
-            </a>
-        </div>
-        <div class="col-lg-3">
-            <p>Зв’яжіться з нами: +380-88-675-89-12</p>
-        </div>
-        <div class="col-lg-12 text-center">
-            <p>© 2024 LibraVerse. Всі права захищені.</p>
-        </div>
+
+    <footer class="footer text-center mt-4">
+        <p>© 2026 LibraVerse. Всі права захищені.</p>
     </footer>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
 </body>
 </html>
-<?php
-    } else {
+<?php 
+} else { 
+    // Блок для неавторизованих користувачів
 ?>
 <!DOCTYPE html>
 <html lang="uk_UA">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <link href="https://fonts.cdnfonts.com/css/roboto" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
-    <script src="../js/script.js"></script>
-    <title>LibraVerse</title>
+    <title>Помилка доступу</title>
 </head>
 <body>
-    <div class="main-content error-msg" id="main-content">
-        <img src="../images/error.svg" alt="error icon">
-        <div class="error-text">
-            <h1>Помилка! Ви не авторизовані</h1>
-            <p>Поверніться до <a href="http://localhost/LibraVerse/">сторінки авторизації працівника</a></p>
-        </div>
+    <div class="container text-center" style="margin-top:100px;">
+        <img src="../images/error.svg" width="100">
+        <h1>Ви не авторизовані!</h1>
+        <p>Поверніться до <a href="../index.php">сторінки входу</a></p>
     </div>
-    <footer class="footer col-lg-12">
-        <div class="col-lg-9 footer-left">
-            <p>Слідкуйте за нами:</p>
-            <a href="https://www.facebook.com/?locale=uk_UA">
-                <img src="../images/icon_facebook.svg" alt="фейсбук">
-            </a>
-            <a href="https://www.instagram.com/">
-                <img src="../images/icon-instagram.svg" alt="інстаграм">
-            </a>
-            <a href="https://twitter.com/?lang=uk">
-                <img src="../images/icon-twitterx.svg" alt="ікс">
-            </a>
-        </div>
-        <div class="col-lg-3">
-            <p>Зв’яжіться з нами: +380-88-675-89-12</p>
-        </div>
-        <div class="col-lg-12 text-center">
-            <p>© 2024 LibraVerse. Всі права захищені.</p>
-        </div>
-    </footer>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
 </body>
 </html>
-<?php
-    }
- $conn->close();
- ?>
+<?php } ?>
