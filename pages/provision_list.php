@@ -1,33 +1,41 @@
-Сторінка provision_list.php також довго завантажуються, а потім видає: Помилка підключення до бази даних. З іншими сторінками все гаразд. Виправ код цієї сторінки.
-
-Ось сторінки provision_list.php:
 <?php
 session_start();
 
-// Параметри підключення до БД
+// Отримання параметрів з оточення
 $host = getenv('DB_HOST');
-$port = getenv('DB_PORT');
 $dbname = getenv('DB_NAME');
 $user = getenv('DB_USER');
 $pass = getenv('DB_PASSWORD');
+$port = getenv('DB_PORT') ?: '3306'; 
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Вказуємо порт прямо у рядку підключення (DSN)
+    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
+    $conn = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_TIMEOUT => 7, // Збільшуємо таймаут для складних запитів
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    ]);
 } catch (PDOException $e) {
-    die("Помилка підключення до бази даних");
+    // Виводимо системну помилку лише для налагодження, якщо потрібно
+    die("Помилка підключення до бази даних. Спробуйте оновити сторінку.");
 }
 
 if(isset($_SESSION['LibrarianID'])) {
     
-    // 1. Отримання статистики (виправлено логіку ReturnDate)
-    // У MySQL/SQLite часто використовують NULL або порожній рядок для не повернутих книг
-    $count_not_returned = $conn->query("SELECT COUNT(*) FROM booksProvision WHERE ReturnDate IS NULL OR ReturnDate = '' OR ReturnDate = '0'")->fetchColumn();
-    $count_returned = $conn->query("SELECT COUNT(*) FROM booksProvision WHERE ReturnDate IS NOT NULL AND ReturnDate != '' AND ReturnDate != '0'")->fetchColumn();
-    $count_all = $conn->query("SELECT COUNT(*) FROM booksProvision")->fetchColumn();
+    // 1. Оптимізоване отримання статистики одним запитом
+    $stats = $conn->query("
+        SELECT 
+            SUM(CASE WHEN ReturnDate IS NULL OR ReturnDate = '' OR ReturnDate = '0' THEN 1 ELSE 0 END) as not_returned,
+            SUM(CASE WHEN ReturnDate IS NOT NULL AND ReturnDate != '' AND ReturnDate != '0' THEN 1 ELSE 0 END) as returned,
+            COUNT(*) as total
+        FROM booksProvision
+    ")->fetch(PDO::FETCH_ASSOC);
+
+    $count_not_returned = $stats['not_returned'] ?? 0;
+    $count_returned = $stats['returned'] ?? 0;
+    $count_all = $stats['total'] ?? 0;
 
     // 2. Формування основного запиту
-    // Виправлено кириличну 'С' у CustomerID
     $query = "SELECT bp.ProvisionID, bp.BookID, bp.CustomerID, b.Title, b.AuthorID, 
                      a.Name AS aName, a.Surname AS aSurname, 
                      c.FirstName, c.ParentalName, c.Surname AS cSurname, c.PhoneNumber, 
@@ -38,17 +46,18 @@ if(isset($_SESSION['LibrarianID'])) {
               JOIN customers c ON c.CustomerID = bp.CustomerID";
 
     // 3. Фільтрація
+    $filter = "";
     if(isset($_POST['select'])) {
         $sort_by = $_POST['select'];
         if($sort_by === 'returned') {
-            $query .= " WHERE bp.ReturnDate IS NOT NULL AND bp.ReturnDate != '' AND bp.ReturnDate != '0'";
+            $filter = " WHERE bp.ReturnDate IS NOT NULL AND bp.ReturnDate != '' AND bp.ReturnDate != '0'";
         } elseif ($sort_by === 'not_returned') {
-            $query .= " WHERE bp.ReturnDate IS NULL OR bp.ReturnDate = '' OR bp.ReturnDate = '0'";
+            $filter = " WHERE bp.ReturnDate IS NULL OR bp.ReturnDate = '' OR bp.ReturnDate = '0'";
         }
     }
     
-    $query .= " ORDER BY bp.ReceiptDate DESC"; // Сортування за датою видачі
-    $provisions = $conn->query($query)->fetchAll(PDO::FETCH_ASSOC);
+    $full_query = $query . $filter . " ORDER BY bp.ReceiptDate DESC";
+    $provisions = $conn->query($full_query)->fetchAll(PDO::FETCH_ASSOC);
 
     if (isset($_GET['logOut'])){
         session_destroy();
@@ -99,13 +108,13 @@ if(isset($_SESSION['LibrarianID'])) {
 
         <div class="row info-stats" style="margin-bottom: 20px;">
             <div class="col-md-4">
-                <div class="well text-center">
+                <div class="well text-center" style="background-color: #fcf8e3;">
                     <h4>Не повернуто</h4>
                     <span class="h3 text-danger"><?php echo $count_not_returned; ?></span>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="well text-center">
+                <div class="well text-center" style="background-color: #dff0d8;">
                     <h4>Повернуто</h4>
                     <span class="h3 text-success"><?php echo $count_returned; ?></span>
                 </div>
@@ -131,16 +140,14 @@ if(isset($_SESSION['LibrarianID'])) {
         <div class="row">
             <div class="col-lg-12">
                 <div class="table-responsive">
-                    <table class="result-table table table-bordered">
+                    <table class="table table-bordered table-hover">
                         <thead>
                             <tr class="active">
-                                <th>ID</th>
                                 <th>Книга</th>
                                 <th>Автор</th>
                                 <th>Клієнт</th>
-                                <th>Телефон</th>
                                 <th>Видано</th>
-                                <th>Повернуто</th>
+                                <th>Статус</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -148,14 +155,12 @@ if(isset($_SESSION['LibrarianID'])) {
                                 $is_returned = ($row['ReturnDate'] && $row['ReturnDate'] != '0');
                             ?>
                             <tr class="<?php echo $is_returned ? '' : 'warning'; ?>">
-                                <td><?php echo $row['ProvisionID']; ?></td>
                                 <td><a href="book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></td>
-                                <td><a href="author_profile.php?AuthorID=<?php echo $row['AuthorID']; ?>"><?php echo "{$row['aName']} {$row['aSurname']}"; ?></a></td>
-                                <td><a href="customer_profile.php?CustomerID=<?php echo $row['CustomerID']; ?>"><?php echo "{$row['FirstName']} {$row['cSurname']}"; ?></a></td>
-                                <td><?php echo htmlspecialchars($row['PhoneNumber']); ?></td>
+                                <td><?php echo htmlspecialchars($row['aName'] . " " . $row['aSurname']); ?></td>
+                                <td><a href="customer_profile.php?CustomerID=<?php echo $row['CustomerID']; ?>"><?php echo htmlspecialchars($row['FirstName'] . " " . $row['cSurname']); ?></a></td>
                                 <td><?php echo $row['ReceiptDate']; ?></td>
                                 <td>
-                                    <?php echo $is_returned ? $row['ReturnDate'] : '<b class="text-danger">В чит. залі</b>'; ?>
+                                    <?php echo $is_returned ? $row['ReturnDate'] : '<span class="label label-danger">На руках</span>'; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -187,16 +192,6 @@ if(isset($_SESSION['LibrarianID'])) {
 </html>
 <?php
 } else {
-    // Сторінка для неавторизованих
-?>
-<!DOCTYPE html>
-<html lang="uk_UA">
-<head><meta charset="UTF-8"><link rel="stylesheet" href="../css/styles.css"><title>Помилка</title></head>
-<body>
-    <div class="container text-center" style="margin-top: 100px;">
-        <h1>Помилка! Ви не авторизовані</h1>
-        <p><a href="../index.php">Увійти в систему</a></p>
-    </div>
-</body>
-</html>
-<?php } ?>
+    header("Location: ../index.php");
+    exit;
+} ?>
