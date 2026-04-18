@@ -3,6 +3,7 @@ session_start();
 
 // Підключення до БД (використовуйте ваші налаштування з Render/Aiven)
 $host = getenv('DB_HOST');
+$port = getenv('DB_PORT');
 $dbname = getenv('DB_NAME');
 $user = getenv('DB_USER');
 $pass = getenv('DB_PASSWORD');
