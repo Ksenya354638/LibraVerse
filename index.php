@@ -1,35 +1,54 @@
 <?php
-    $db_file = "./library.db";
-    $conn = new SQLite3($db_file);
-    if (!$conn) {
+$host = getenv('DB_HOST');
+$port = getenv('DB_PORT');
+$dbname = getenv('DB_NAME');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASSWORD');
+
+try {
+    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+    $conn = new PDO($dsn, $user, $pass);
+    
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    echo "<div class='validation-msg'>
+            <img src='./images/error.svg' alt='error icon'>
+            <h2 class='validation-text'>Помилка! Не вдалося під'єднатися до бази даних</h2>     
+          </div>";
+    echo "Connection failed: " . $e->getMessage();
+    exit;
+}
+
+session_start();
+
+if(isset($_POST['logIn'])) {
+    $phoneNumber = $_POST['phoneNumber'];
+    $password = $_POST['password'];
+
+    $query = $conn->prepare("SELECT LibrarianID, FirstName, ParentalName, PhoneNumber, Password 
+                             FROM librarians 
+                             WHERE PhoneNumber = :phoneNumber AND Password = :password");
+    
+    $query->execute([
+        ':phoneNumber' => $phoneNumber,
+        ':password' => $password
+    ]);
+
+    $librarian = $query->fetch(PDO::FETCH_ASSOC);
+
+    if ($librarian) {
+        $_SESSION['LibrarianID'] = $librarian['LibrarianID'];
+        header("Location: ./pages/home.php");
+        exit;
+    } else {
         echo "<div class='validation-msg'>
                 <img src='./images/error.svg' alt='error icon'>
-                <h2 class='validation-text'>Помилка! Не вдалося під'єднатися до бази даних</h2>     
+                <h2 class='validation-text'>Помилка! Не вдалося авторизуватися</h2>     
               </div>";
-    };
-
-    session_start();
-    if(isset($_POST['logIn'])) {
-        $phoneNumber= $_POST['phoneNumber'];
-        $password= $_POST['password'];
-        $query_create = $conn->prepare("SELECT LibrarianID, FirstName, ParentalName,PhoneNumber,Password FROM 
-                                        librarians WHERE PhoneNumber=:phoneNumber AND Password=:password;");
-        $query_create->bindValue(':phoneNumber', $phoneNumber, SQLITE3_TEXT);
-        $query_create->bindValue(':password', $password, SQLITE3_TEXT);
-        $query_create->execute();
-        $result = $query_create->execute();
-        $librarian = $result->fetchArray(SQLITE3_ASSOC);
-        if  ($librarian) {
-            $_SESSION['LibrarianID'] = $librarian['LibrarianID'];
-            header("Location: ./pages/home.php");
-        }   else {
-            echo "<div class='validation-msg'>
-                    <img src='./images/error.svg' alt='error icon'>
-                    <h2 class='validation-text'>Помилка! Не вдалося авторизуватися за уведеними даними</h2>     
-                  </div>";
-        }   
     }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="uk_UA">
 <head>
