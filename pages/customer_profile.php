@@ -18,26 +18,26 @@ if(isset($_SESSION['LibrarianID'])) {
         $stmt->execute([$customerID]);
         $customer = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // 2. Книги, що зараз на руках (ReturnDate порожня/NULL)
+        // 2. Книги на руках (ReturnDate або NULL, або '0000-00-00', або порожнє)
         $stmtActive = $conn->prepare("SELECT bp.ProvisionID, bp.BookID, bp.LibrarianID, b.Title, l.FirstName, l.Surname, bp.ReceiptDate 
             FROM booksprovision bp 
             JOIN books b ON bp.BookID = b.BookID 
             JOIN librarians l ON bp.LibrarianID = l.LibrarianID 
-            WHERE bp.CustomerID = ? AND bp.ReturnDate IS NULL"); // ВИПРАВЛЕНО ТУТ
+            WHERE bp.CustomerID = ? AND (bp.ReturnDate IS NULL OR bp.ReturnDate = '0000-00-00' OR bp.ReturnDate = '0')");
         $stmtActive->execute([$customerID]);
+        $activeBooks = $stmtActive->fetchAll(PDO::FETCH_ASSOC);
 
-        // 3. Історія (ReturnDate заповнена)
+        // 3. Історія (ReturnDate має реальну дату)
         $stmtHistory = $conn->prepare("SELECT bp.ProvisionID, bp.BookID, b.Title, l.FirstName, l.Surname, bp.ReceiptDate, bp.ReturnDate 
             FROM booksprovision bp 
             JOIN books b ON bp.BookID = b.BookID 
             JOIN librarians l ON bp.LibrarianID = l.LibrarianID 
-            WHERE bp.CustomerID = ? AND bp.ReturnDate IS NOT NULL 
-            ORDER BY bp.ReturnDate DESC"); // ВИПРАВЛЕНО ТУТ
+            WHERE bp.CustomerID = ? AND bp.ReturnDate IS NOT NULL AND bp.ReturnDate != '0000-00-00' AND bp.ReturnDate != '0'
+            ORDER BY bp.ReturnDate DESC");
         $stmtHistory->execute([$customerID]);
+        $historyBooks = $stmtHistory->fetchAll(PDO::FETCH_ASSOC);
 
         // --- ЛОГІКА ДІЙ ---
-
-        // Видалення клієнта
         if(isset($_POST['delete'])) {
             $del = $conn->prepare("DELETE FROM customers WHERE CustomerID = ?");
             $del->execute([$customerID]);
@@ -45,20 +45,16 @@ if(isset($_SESSION['LibrarianID'])) {
             exit;
         }
 
-        // Повернення книги
         if(isset($_POST['return'])) {
             $provID = $_POST['return'];
             $bookID = $_POST['bookID'];
             $now = date("Y-m-d");
-
-            // ВИПРАВЛЕНО: назва таблиці booksprovision
             $conn->prepare("UPDATE booksprovision SET ReturnDate = ? WHERE ProvisionID = ?")->execute([$now, $provID]);
             $conn->prepare("UPDATE books SET Status = 'в наявності' WHERE BookID = ?")->execute([$bookID]);
             header("Location: ./customer_profile.php?CustomerID=$customerID");
             exit;
         }
 
-        // Початок процесу видачі книги
         if(isset($_POST['provide'])) {
             $_SESSION['CustomerID'] = $customerID;
             header("Location: ./books_list.php"); 
@@ -109,7 +105,7 @@ if(isset($_SESSION['LibrarianID'])) {
                     <p><b>Робота:</b> <?php echo htmlspecialchars($customer['Employment']); ?></p>
                 </div>
                 <div class="col-md-4 text-right">
-                    <form method="POST" onsubmit="return confirm('Видалити цього клієнта?')">
+                    <form method="POST" onsubmit="return confirm('Видалити клієнта?')">
                         <button type="submit" name="delete" class="btn btn-danger">Видалити профіль</button>
                     </form>
                     <form method="POST" class="mt-2">
@@ -123,32 +119,45 @@ if(isset($_SESSION['LibrarianID'])) {
             <h3>Книги на руках:</h3>
             <table class="table table-bordered">
                 <tr class="info">
-                    <th>Книга</th><th>Дата видачі</th><th>Дія</th>
+                    <th>ID</th><th>Книга</th><th>Бібліотекар</th><th>Дата видачі</th><th>Дія</th>
                 </tr>
-                <?php while ($row = $stmtActive->fetch(PDO::FETCH_ASSOC)): ?>
-                <tr>
-                    <td><a href="./book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></td>
-                    <td><?php echo $row['ReceiptDate']; ?></td>
-                    <td>
-                        <form method="POST">
-                            <input type="hidden" name="bookID" value="<?php echo $row['BookID']; ?>">
-                            <button type="submit" name="return" value="<?php echo $row['ProvisionID']; ?>" class="btn btn-xs btn-warning">Повернуто</button>
-                        </form>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
+                <?php if (empty($activeBooks)): ?>
+                    <tr><td colspan="5" class="text-center">Немає книг на руках</td></tr>
+                <?php else: ?>
+                    <?php foreach ($activeBooks as $row): ?>
+                    <tr>
+                        <td><?php echo $row['ProvisionID']; ?></td>
+                        <td><a href="./book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></td>
+                        <td><?php echo htmlspecialchars($row['FirstName'] . " " . $row['Surname']); ?></td>
+                        <td><?php echo $row['ReceiptDate']; ?></td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="bookID" value="<?php echo $row['BookID']; ?>">
+                                <button type="submit" name="return" value="<?php echo $row['ProvisionID']; ?>" class="btn btn-xs btn-warning">Повернуто</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </table>
 
-            <h3 class="mt-5">Історія:</h3>
+            <h3 class="mt-5">Історія повернутих книг:</h3>
             <table class="table table-condensed">
-                <tr><th>Книга</th><th>Видано</th><th>Повернено</th></tr>
-                <?php while ($row = $stmtHistory->fetch(PDO::FETCH_ASSOC)): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($row['Title']); ?></td>
-                    <td><?php echo $row['ReceiptDate']; ?></td>
-                    <td><?php echo $row['ReturnDate']; ?></td>
+                <tr class="active">
+                    <th>ID</th><th>Книга</th><th>Видано</th><th>Повернено</th>
                 </tr>
-                <?php endwhile; ?>
+                <?php if (empty($historyBooks)): ?>
+                    <tr><td colspan="4" class="text-center">Історія порожня</td></tr>
+                <?php else: ?>
+                    <?php foreach ($historyBooks as $row): ?>
+                    <tr>
+                        <td><?php echo $row['ProvisionID']; ?></td>
+                        <td><?php echo htmlspecialchars($row['Title']); ?></td>
+                        <td><?php echo $row['ReceiptDate']; ?></td>
+                        <td><?php echo $row['ReturnDate']; ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </table>
 
         <?php else: ?>
