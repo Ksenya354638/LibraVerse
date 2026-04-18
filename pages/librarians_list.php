@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Параметри підключення (змінні середовища для Render або локальні)
 $host = getenv('DB_HOST');
 $port = getenv('DB_PORT');
 $dbname = getenv('DB_NAME');
@@ -9,10 +8,15 @@ $user = getenv('DB_USER');
 $pass = getenv('DB_PASSWORD');
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+
+    $conn = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 5
+    ]);
+
 } catch (PDOException $e) {
-    die("Помилка підключення до бази даних");
+    die("Помилка підключення до бази даних: " . $e->getMessage());
 }
 
 if(isset($_SESSION['LibrarianID'])) {
