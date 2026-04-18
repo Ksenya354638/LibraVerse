@@ -102,12 +102,8 @@ if (isset($_SESSION['LibrarianID'])) {
             <div class="row">
                 <div class="col-md-4">
                     <div class="book-cover-large">
-                        <?php 
-                            // Перевіряємо, чи є шлях до фото в базі, і чи існує файл
-                            $coverPath = !empty($book['BookCover']) ? "../images/covers/" . $book['BookCover'] : "../images/covers/no_cover.png";
-                        ?>
-                        <img src="<?php echo htmlspecialchars($coverPath); ?>" 
-                             alt="Обкладинка: <?php echo htmlspecialchars($book['Title']); ?>" 
+                        <img src="<?php echo htmlspecialchars($row['BookCover']); ?>"
+                            alt="обкладинка" class="img-responsive" 
                              class="img-responsive img-thumbnail"
                              style="width: 100%; max-height: 500px; object-fit: contain;">
                     </div>
