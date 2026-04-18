@@ -101,13 +101,16 @@ if (isset($_SESSION['LibrarianID'])) {
         <?php if ($book): ?>
             <div class="row">
                 <div class="col-md-4">
-                    <div class="book-cover-large">
-                        <img src="<?php echo htmlspecialchars($row['BookCover']); ?>"
-                            alt="обкладинка" class="img-responsive" 
-                             class="img-responsive img-thumbnail"
-                             style="width: 100%; max-height: 500px; object-fit: contain;">
-                    </div>
-                </div>
+    <div class="book-cover-large">
+        <?php 
+            $coverPath = !empty($book['BookCover']) ? $book['BookCover'] : "../images/books_img/no_cover.png";
+        ?>
+        <img src="<?php echo htmlspecialchars($coverPath); ?>" 
+             alt="Обкладинка: <?php echo htmlspecialchars($book['Title']); ?>" 
+             class="img-responsive img-thumbnail"
+             style="width: 100%; max-height: 500px; object-fit: contain;">
+        </div>
+    </div>
 
                 <div class="col-md-5">
                     <h1><?php echo htmlspecialchars($book['Title']); ?></h1>
