@@ -13,26 +13,26 @@ if(isset($_SESSION['LibrarianID'])) {
     if(isset($_GET['CustomerID'])) {
         $customerID = $_GET['CustomerID'];
 
-        // 1. Отримання даних клієнта
+       // 1. Отримання даних клієнта
         $stmt = $conn->prepare("SELECT * FROM customers WHERE CustomerID = ?");
         $stmt->execute([$customerID]);
         $customer = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // 2. Книги на руках (ReturnDate або NULL, або '0000-00-00', або порожнє)
+        // 2. Книги на руках (Шукаємо тільки ті, де ReturnDate є NULL)
         $stmtActive = $conn->prepare("SELECT bp.ProvisionID, bp.BookID, bp.LibrarianID, b.Title, l.FirstName, l.Surname, bp.ReceiptDate 
             FROM booksprovision bp 
             JOIN books b ON bp.BookID = b.BookID 
             JOIN librarians l ON bp.LibrarianID = l.LibrarianID 
-            WHERE bp.CustomerID = ? AND (bp.ReturnDate IS NULL OR bp.ReturnDate = '0000-00-00' OR bp.ReturnDate = '0')");
+            WHERE bp.CustomerID = ? AND bp.ReturnDate IS NULL"); 
         $stmtActive->execute([$customerID]);
         $activeBooks = $stmtActive->fetchAll(PDO::FETCH_ASSOC);
 
-        // 3. Історія (ReturnDate має реальну дату)
+        // 3. Історія (Тільки ті, де ReturnDate МАЄ значення)
         $stmtHistory = $conn->prepare("SELECT bp.ProvisionID, bp.BookID, b.Title, l.FirstName, l.Surname, bp.ReceiptDate, bp.ReturnDate 
             FROM booksprovision bp 
             JOIN books b ON bp.BookID = b.BookID 
             JOIN librarians l ON bp.LibrarianID = l.LibrarianID 
-            WHERE bp.CustomerID = ? AND bp.ReturnDate IS NOT NULL AND bp.ReturnDate != '0000-00-00' AND bp.ReturnDate != '0'
+            WHERE bp.CustomerID = ? AND bp.ReturnDate IS NOT NULL
             ORDER BY bp.ReturnDate DESC");
         $stmtHistory->execute([$customerID]);
         $historyBooks = $stmtHistory->fetchAll(PDO::FETCH_ASSOC);
