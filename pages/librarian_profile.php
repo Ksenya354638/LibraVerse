@@ -1,46 +1,53 @@
 <?php
 session_start();
 
-// Параметри підключення до БД (MySQL/Render)
+// Отримання параметрів з оточення
 $host = getenv('DB_HOST');
-$port = getenv('DB_PORT');
 $dbname = getenv('DB_NAME');
 $user = getenv('DB_USER');
 $pass = getenv('DB_PASSWORD');
+$port = getenv('DB_PORT') ?: '3306'; // Стандартний порт для MySQL
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Додаємо порт до DSN та встановлюємо таймаут підключення
+    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
+    $conn = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_TIMEOUT => 5, // Таймаут 5 секунд
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    ]);
 } catch (PDOException $e) {
-    die("Помилка підключення до бази даних");
+    die("Помилка підключення до бази даних. Перевірте налаштування Render.");
 }
 
 if(isset($_SESSION['LibrarianID'])) {
-    if(isset($_GET['LibrarianID'])) {
-        $librarianID = $_GET['LibrarianID'];
+    $librarianID = $_GET['LibrarianID'] ?? null;
+    $librarian = null;
+    $provisions = [];
 
-        // 1. Отримуємо дані працівника
+    if($librarianID) {
+        // 1. Дані працівника
         $stmt1 = $conn->prepare("SELECT * FROM librarians WHERE LibrarianID = ?");
         $stmt1->execute([$librarianID]);
         $librarian = $stmt1->fetch(PDO::FETCH_ASSOC);
 
-        // 2. Отримуємо список виданих ним книг
-        // Зверніть увагу: я виправив СustomerID (кирилична 'С' на латинську 'C')
-        $stmt2 = $conn->prepare("SELECT bp.ProvisionID, b.BookID, b.Title, 
-                                        c.CustomerID, c.FirstName, c.Surname, 
-                                        c.PhoneNumber, bp.ReceiptDate, bp.ReturnDate 
-                                 FROM booksProvision bp 
-                                 JOIN books b ON bp.BookID = b.BookID 
-                                 JOIN customers c ON bp.CustomerID = c.CustomerID 
-                                 WHERE bp.LibrarianID = ?");
-        $stmt2->execute([$librarianID]);
-        $provisions = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+        if($librarian) {
+            // 2. Список виданих книг (латинська C у CustomerID)
+            $stmt2 = $conn->prepare("SELECT bp.ProvisionID, b.BookID, b.Title, 
+                                            c.CustomerID, c.FirstName, c.Surname, 
+                                            bp.ReceiptDate, bp.ReturnDate 
+                                     FROM booksProvision bp 
+                                     JOIN books b ON bp.BookID = b.BookID 
+                                     JOIN customers c ON bp.CustomerID = c.CustomerID 
+                                     WHERE bp.LibrarianID = ?
+                                     ORDER BY bp.ReceiptDate DESC");
+            $stmt2->execute([$librarianID]);
+            $provisions = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+        }
 
-        // 3. Обробка видалення
+        // 3. Видалення
         if(isset($_POST['delete'])) {
             $stmt_del = $conn->prepare("DELETE FROM librarians WHERE LibrarianID = ?");
             $stmt_del->execute([$librarianID]);
-            // Після видалення краще перенаправити на список
             header("Location: librarians_list.php?deleted=success");
             exit;
         }
@@ -88,62 +95,54 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <?php if (isset($librarian) && $librarian): ?>
-    <div class="container main-content librarian">
-        <div class="col-lg-12 profile">
-            <div class="book-descript col-lg-9">
-                <h1 class="author-name">
-                    <?php echo "{$librarian['Surname']} {$librarian['FirstName']} {$librarian['ParentalName']}"; ?> 
-                    <small>(ID = <?php echo $librarian['LibrarianID']; ?>)</small>
-                </h1>
-                <p><b>Адреса: </b><?php echo htmlspecialchars($librarian['Address']); ?></p>
-                <p><b>Телефон: </b><?php echo htmlspecialchars($librarian['PhoneNumber']); ?></p>
-                <p><b>Дата народження: </b><?php echo $librarian['BirthDate']; ?></p>
-                <p><b>Прийнятий на роботу: </b><?php echo $librarian['EmploymentDate']; ?></p>
-                <p><b>Посада: </b><?php echo htmlspecialchars($librarian['Position']); ?></p>
+    <div class="container main-content">
+        <?php if ($librarian): ?>
+            <div class="row profile-info">
+                <div class="col-md-8">
+                    <h1><?php echo htmlspecialchars("{$librarian['Surname']} {$librarian['FirstName']} {$librarian['ParentalName']}"); ?></h1>
+                    <p><b>ID:</b> <?php echo $librarian['LibrarianID']; ?></p>
+                    <p><b>Посада:</b> <?php echo htmlspecialchars($librarian['Position']); ?></p>
+                    <p><b>Телефон:</b> <?php echo htmlspecialchars($librarian['PhoneNumber']); ?></p>
+                    <p><b>Адреса:</b> <?php echo htmlspecialchars($librarian['Address']); ?></p>
+                </div>
+                <div class="col-md-4 text-right">
+                    <form method="POST" onsubmit="return confirm('Видалити цього працівника?');">
+                        <button type="submit" name="delete" class="btn btn-danger">Видалити профіль</button>
+                    </form>
+                </div>
             </div>
-            <div class="buttons right col-lg-3">
-                <form method="POST" onsubmit="return confirm('Ви впевнені, що хочете видалити цього працівника?');">
-                    <input class="delete" type="submit" name="delete" value="Видалити працівника">
-                </form>
-            </div>
-        </div>
 
-        <div class="table col-lg-12" style="margin-top: 30px;">
-            <h2>Книги, видані цим працівником:</h2>
-            <table class="result-table col-lg-12 table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Книга</th>
-                        <th>Клієнт</th>
-                        <th>Дата видачі</th>
-                        <th>Дата повернення</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($provisions as $row): ?>
-                    <tr>
-                        <td><?php echo $row['ProvisionID']; ?></td>
-                        <td><a href="book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></td>
-                        <td><a href="customer_profile.php?CustomerID=<?php echo $row['CustomerID']; ?>"><?php echo "{$row['FirstName']} {$row['Surname']}"; ?></a></td>
-                        <td><?php echo $row['ReceiptDate']; ?></td>
-                        <td><?php echo $row['ReturnDate'] ?: '<span class="text-warning">не повернуто</span>'; ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+            <div class="row" style="margin-top: 40px;">
+                <div class="col-md-12">
+                    <h3>Історія видач:</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Книга</th>
+                                    <th>Клієнт</th>
+                                    <th>Дата видачі</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($provisions as $row): ?>
+                                <tr>
+                                    <td><a href="book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></td>
+                                    <td><a href="customer_profile.php?CustomerID=<?php echo $row['CustomerID']; ?>"><?php echo htmlspecialchars($row['Surname']); ?></a></td>
+                                    <td><?php echo $row['ReceiptDate']; ?></td>
+                                    <td><?php echo $row['ReturnDate'] ?: '<span class="label label-warning">На руках</span>'; ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-danger text-center">Працівника не знайдено.</div>
+        <?php endif; ?>
     </div>
-
-    <?php elseif(isset($librarianID)): ?>
-        <div class="container error-msg text-center">
-            <img src="../images/error.svg" alt="error">
-            <h1>Працівника з ID <?php echo htmlspecialchars($librarianID); ?> не знайдено</h1>
-            <p><a href="librarians_list.php" class="btn btn-primary">До списку працівників</a></p>
-        </div>
-    <?php endif; ?>
-
     <footer class="footer col-lg-12">
         <div class="col-lg-9 footer-left">
             <p>Слідкуйте за нами:</p>
@@ -158,14 +157,8 @@ if(isset($_SESSION['LibrarianID'])) {
             <p>© 2026 LibraVerse. Всі права захищені.</p>
         </div>
     </footer>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
 </body>
 </html>
 <?php 
-} else { 
-    // Якщо не авторизований
-    header("Location: ../index.php");
-    exit;
-} 
+} else { header("Location: ../index.php"); exit; } 
 ?>
