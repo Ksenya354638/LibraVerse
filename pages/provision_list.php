@@ -19,11 +19,14 @@ try {
 
 if(isset($_SESSION['LibrarianID'])) {
     
-    // 1. Оптимізована статистика 
+    if(isset($_SESSION['LibrarianID'])) {
+    
+    // 1. Статистика з виправленою перевіркою дат (Line 23-30)
+    // Ми прибираємо порівняння з '' та '0', залишаючи перевірку на NULL
     $stats = $conn->query("
         SELECT 
-            SUM(CASE WHEN ReturnDate IS NULL OR ReturnDate = '' OR ReturnDate = '0' THEN 1 ELSE 0 END) as not_returned,
-            SUM(CASE WHEN ReturnDate IS NOT NULL AND ReturnDate != '' AND ReturnDate != '0' THEN 1 ELSE 0 END) as returned,
+            SUM(CASE WHEN ReturnDate IS NULL THEN 1 ELSE 0 END) as not_returned,
+            SUM(CASE WHEN ReturnDate IS NOT NULL THEN 1 ELSE 0 END) as returned,
             COUNT(*) as total
         FROM booksprovision
     ")->fetch(PDO::FETCH_ASSOC);
@@ -32,7 +35,7 @@ if(isset($_SESSION['LibrarianID'])) {
     $count_returned = $stats['returned'] ?? 0;
     $count_all = $stats['total'] ?? 0;
 
-    // 2. Формування основного запиту 
+    // 2. Основний запит
     $query = "SELECT bp.ProvisionID, bp.BookID, bp.CustomerID, b.Title, b.AuthorID, 
                      a.Name AS aName, a.Surname AS aSurname, 
                      c.FirstName, c.ParentalName, c.Surname AS cSurname, c.PhoneNumber, 
@@ -42,14 +45,14 @@ if(isset($_SESSION['LibrarianID'])) {
               JOIN authors a ON b.AuthorID = a.AuthorID 
               JOIN customers c ON c.CustomerID = bp.CustomerID";
 
-    // 3. Фільтрація
+    // 3. Фільтрація з виправленими умовами
     $filter = "";
     if(isset($_POST['select'])) {
         $sort_by = $_POST['select'];
         if($sort_by === 'returned') {
-            $filter = " WHERE bp.ReturnDate IS NOT NULL AND bp.ReturnDate != '' AND bp.ReturnDate != '0'";
+            $filter = " WHERE bp.ReturnDate IS NOT NULL";
         } elseif ($sort_by === 'not_returned') {
-            $filter = " WHERE bp.ReturnDate IS NULL OR bp.ReturnDate = '' OR bp.ReturnDate = '0'";
+            $filter = " WHERE bp.ReturnDate IS NULL";
         }
     }
     
@@ -149,7 +152,7 @@ if(isset($_SESSION['LibrarianID'])) {
                         </thead>
                         <tbody>
                             <?php foreach ($provisions as $row): 
-                                $is_returned = ($row['ReturnDate'] && $row['ReturnDate'] != '0');
+                                $is_returned = !is_null($row['ReturnDate']);
                             ?>
                             <tr class="<?php echo $is_returned ? '' : 'warning'; ?>">
                                 <td><a href="book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></td>
