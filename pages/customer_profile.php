@@ -19,16 +19,18 @@ if(isset($_SESSION['LibrarianID'])) {
         $customer = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // 2. Книги, що зараз на руках (ReturnDate = 0)
+        // ВИПРАВЛЕНО: назва таблиці booksprovision
         $stmtActive = $conn->prepare("SELECT bp.ProvisionID, bp.BookID, bp.LibrarianID, b.Title, l.FirstName, l.Surname, bp.ReceiptDate 
-            FROM booksProvision bp 
+            FROM booksprovision bp 
             JOIN books b ON bp.BookID = b.BookID 
             JOIN librarians l ON bp.LibrarianID = l.LibrarianID 
             WHERE bp.CustomerID = ? AND bp.ReturnDate = '0'");
         $stmtActive->execute([$customerID]);
 
         // 3. Історія (ReturnDate != 0)
+        // ВИПРАВЛЕНО: назва таблиці booksprovision
         $stmtHistory = $conn->prepare("SELECT bp.ProvisionID, bp.BookID, b.Title, l.FirstName, l.Surname, bp.ReceiptDate, bp.ReturnDate 
-            FROM booksProvision bp 
+            FROM booksprovision bp 
             JOIN books b ON bp.BookID = b.BookID 
             JOIN librarians l ON bp.LibrarianID = l.LibrarianID 
             WHERE bp.CustomerID = ? AND bp.ReturnDate != '0'
@@ -51,7 +53,8 @@ if(isset($_SESSION['LibrarianID'])) {
             $bookID = $_POST['bookID'];
             $now = date("Y-m-d");
 
-            $conn->prepare("UPDATE booksProvision SET ReturnDate = ? WHERE ProvisionID = ?")->execute([$now, $provID]);
+            // ВИПРАВЛЕНО: назва таблиці booksprovision
+            $conn->prepare("UPDATE booksprovision SET ReturnDate = ? WHERE ProvisionID = ?")->execute([$now, $provID]);
             $conn->prepare("UPDATE books SET Status = 'в наявності' WHERE BookID = ?")->execute([$bookID]);
             header("Location: ./customer_profile.php?CustomerID=$customerID");
             exit;
@@ -60,7 +63,7 @@ if(isset($_SESSION['LibrarianID'])) {
         // Початок процесу видачі книги
         if(isset($_POST['provide'])) {
             $_SESSION['CustomerID'] = $customerID;
-            header("Location: ./books_list.php"); // Переходимо вибирати книгу
+            header("Location: ./books_list.php"); 
             exit;
         }
 ?>
@@ -76,12 +79,25 @@ if(isset($_SESSION['LibrarianID'])) {
     <nav class="navbar navbar-default">
         <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" href="./home.php">LibraVerse</a>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#menu">
+                    <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+                </button>
+                <div class="navbar-logo">
+                    <img src="../images/logo.svg" alt="логотип">
+                    <a href="./home.php" id="main">LibraVerse</a>
+                </div>
             </div>
-            <ul class="nav navbar-nav navbar-right">
-                <li><a href="./customers_list.php">Назад до списку</a></li>
-                <li><a href="?logOut=1">Вийти</a></li>
-            </ul>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="nav navbar-nav navbar-right text-center">
+                  <li><a href="./home.php">Головна</a></li>
+                  <li><a href="./customers_list.php">Клієнти</a></li>
+                  <li><a href="./books_list.php">Книги</a></li>
+                  <li><a href="./author_list.php">Автори</a></li> 
+                  <li><a href="./librarians_list.php">Працівники</a></li>
+                  <li><a href="./provision_list.php">Видача книг</a></li>
+                  <li><a href="?logOut=1" id="logOut">Вийти</a></li>
+                </ul>
+            </div>
         </div>
     </nav>
 
@@ -141,9 +157,15 @@ if(isset($_SESSION['LibrarianID'])) {
             <div class="alert alert-danger">Клієнта не знайдено!</div>
         <?php endif; ?>
     </div>
+    <footer class="footer text-center">
+        <p>© 2026 LibraVerse. Всі права захищені.</p>
+    </footer>
 </body>
 </html>
 <?php 
     } 
-} else { header("Location: ../index.php"); } 
+} else { 
+    header("Location: ../index.php"); 
+    exit;
+} 
 ?>

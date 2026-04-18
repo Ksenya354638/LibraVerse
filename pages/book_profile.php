@@ -1,7 +1,6 @@
 <?php
-session_start(); // Сесія завжди на самому початку
+session_start(); 
 
-// Налаштування підключення до БД через змінні оточення (для Render/Aiven)
 $host = getenv('DB_HOST');
 $port = getenv('DB_PORT');
 $dbname = getenv('DB_NAME');
@@ -16,14 +15,12 @@ try {
     die("<div class='validation-msg'><h2>Помилка підключення до бази даних</h2></div>");
 }
 
-// Перевірка авторизації
 if (isset($_SESSION['LibrarianID'])) {
     $book = null;
     
     if (isset($_GET['BookID'])) {
         $bookID = $_GET['BookID'];
 
-        // Отримання даних про книгу та автора (PDO версія)
         $stmt = $conn->prepare("SELECT b.*, a.Name, a.Surname, a.AuthorID 
                                  FROM books b 
                                  JOIN authors a ON b.AuthorID = a.AuthorID 
@@ -31,7 +28,6 @@ if (isset($_SESSION['LibrarianID'])) {
         $stmt->execute([$bookID]);
         $book = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Видалення книги
         if (isset($_POST['delete'])) {
             $deleteStmt = $conn->prepare("DELETE FROM books WHERE BookID = ?");
             $deleteStmt->execute([$bookID]);
@@ -39,19 +35,16 @@ if (isset($_SESSION['LibrarianID'])) {
             exit;
         }
 
-        // Видача книги клієнту
         if (isset($_POST['provide'])) {
             if (isset($_SESSION['CustomerID'])) {
                 $customerID = $_SESSION['CustomerID'];
                 $librarianID = $_SESSION['LibrarianID'];
                 $receiptDate = date("Y-m-d");
 
-                // ВАЖЛИВО: Переконайтеся, що в БД назва колонки CustomerID (латиницею)
                 $provideStmt = $conn->prepare("INSERT INTO booksProvision (BookID, CustomerID, LibrarianID, ReceiptDate, ReturnDate) 
                                                VALUES (?, ?, ?, ?, '0')");
                 $provideStmt->execute([$bookID, $customerID, $librarianID, $receiptDate]);
 
-                // Оновлення статусу книги
                 $updateStmt = $conn->prepare("UPDATE books SET Status = 'на руках' WHERE BookID = ?");
                 $updateStmt->execute([$bookID]);
 
@@ -59,17 +52,15 @@ if (isset($_SESSION['LibrarianID'])) {
                 header("Location: ./provision_list.php");
                 exit;
             } else {
-                // Якщо клієнта не обрано, перенаправляємо на список клієнтів
                 header("Location: ./customers_list.php?action=select_for_book&BookID=" . $bookID);
                 exit;
             }
         }
     }
 
-    // Логаут
     if (isset($_GET['logOut'])) {
         session_destroy();
-        header("Location: ../index.php"); // Шлях до вашої сторінки входу
+        header("Location: ../index.php");
         exit;
     }
 ?>
@@ -95,3 +86,54 @@ if (isset($_SESSION['LibrarianID'])) {
                     <a href="./home.php" id="main">LibraVerse</a>
                 </div>
             </div>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="nav navbar-nav navbar-right text-center">
+                    <li><a href="./home.php">Головна</a></li>
+                    <li><a href="./customers_list.php">Клієнти</a></li>
+                    <li><a href="./books_list.php">Книги</a></li>
+                    <li><a href="?logOut=1">Вийти</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-content">
+        <?php if ($book): ?>
+            <div class="row">
+                <div class="col-md-8">
+                    <h1><?php echo htmlspecialchars($book['Title']); ?></h1>
+                    <p><b>Автор:</b> <a href="./author_profile.php?AuthorID=<?php echo $book['AuthorID']; ?>">
+                        <?php echo htmlspecialchars($book['Name'] . " " . $book['Surname']); ?></a></p>
+                    <p><b>Жанр:</b> <?php echo htmlspecialchars($book['Genre']); ?></p>
+                    <p><b>Рік:</b> <?php echo $book['Year']; ?></p>
+                    <p><b>Статус:</b> <span class="label <?php echo ($book['Status'] == 'в наявності') ? 'label-success' : 'label-warning'; ?>">
+                        <?php echo $book['Status']; ?></span></p>
+                </div>
+                <div class="col-md-4 text-right">
+                    <form method="POST">
+                        <?php if ($book['Status'] == 'в наявності'): ?>
+                            <button type="submit" name="provide" class="btn btn-success btn-block">Видати книгу</button>
+                        <?php endif; ?>
+                        <button type="submit" name="delete" class="btn btn-danger btn-block" onclick="return confirm('Видалити книгу?')">Видалити з бази</button>
+                    </form>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-danger">Книгу з таким ID не знайдено.</div>
+        <?php endif; ?>
+    </div>
+
+    <footer class="footer text-center" style="margin-top: 50px;">
+        <p>© 2026 LibraVerse. Всі права захищені.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+</body>
+</html>
+<?php 
+} else {
+    header("Location: ../index.php");
+    exit;
+}
+?>

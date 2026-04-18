@@ -73,7 +73,26 @@ if(isset($_SESSION['LibrarianID'])){
 </head>
 <body>
     <nav class="navbar navbar-default">
-        </nav>
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#menu">
+                    <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+                </button>
+                <div class="navbar-logo">
+                    <img src="../images/logo.svg" alt="логотип">
+                    <a href="./home.php" id="main">LibraVerse</a>
+                </div>
+            </div>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="nav navbar-nav navbar-right text-center">
+                    <li><a href="./home.php">Головна</a></li>
+                    <li><a href="./customers_list.php">Клієнти</a></li>
+                    <li><a href="./books_list.php">Книги</a></li>
+                    <li><a href="?logOut=1">Вийти</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <?php if ($author) { ?>
     <div class="main-content profile">
@@ -114,6 +133,11 @@ if(isset($_SESSION['LibrarianID'])){
     <?php } else { ?>
         <div class="alert alert-danger">Автора не знайдено! <a href="./author_list.php">Назад до списку</a></div>
     <?php } ?>
+
+    <footer class="footer text-center" style="margin-top: 50px;">
+        <p>© 2026 LibraVerse. Всі права захищені.</p>
+    </footer>
+    
 </body>
 </html>
 <?php 
