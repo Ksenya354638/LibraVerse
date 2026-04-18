@@ -85,10 +85,13 @@ if(isset($_SESSION['LibrarianID'])){
             </div>
             <div class="collapse navbar-collapse" id="menu">
                 <ul class="nav navbar-nav navbar-right text-center">
-                    <li><a href="./home.php">Головна</a></li>
-                    <li><a href="./customers_list.php">Клієнти</a></li>
-                    <li><a href="./books_list.php">Книги</a></li>
-                    <li><a href="?logOut=1">Вийти</a></li>
+                  <li><a href="./home.php">Головна</a></li>
+                  <li><a href="./customers_list.php">Клієнти</a></li>
+                  <li><a href="./books_list.php">Книги</a></li>
+                  <li><a href="./author_list.php">Автори</a></li> 
+                  <li><a href="./librarians_list.php">Працівники</a></li>
+                  <li><a href="./provision_list.php">Видача книг</a></li>
+                  <li><a href="?logOut=1" id="logOut">Вийти</a></li>
                 </ul>
             </div>
         </div>
@@ -134,8 +137,19 @@ if(isset($_SESSION['LibrarianID'])){
         <div class="alert alert-danger">Автора не знайдено! <a href="./author_list.php">Назад до списку</a></div>
     <?php } ?>
 
-    <footer class="footer text-center" style="margin-top: 50px;">
-        <p>© 2026 LibraVerse. Всі права захищені.</p>
+    <footer class="footer col-lg-12">
+        <div class="col-lg-9 footer-left">
+            <p>Слідкуйте за нами:</p>
+            <a href="#"><img src="../images/icon_facebook.svg" alt="фейсбук"></a>
+            <a href="#"><img src="../images/icon-instagram.svg" alt="інстаграм"></a>
+            <a href="#"><img src="../images/icon-twitterx.svg" alt="ікс"></a>
+        </div>
+        <div class="col-lg-3">
+            <p>Зв’яжіться з нами: +380-88-675-89-12</p>
+        </div>
+        <div class="col-lg-12 text-center">
+            <p>© 2026 LibraVerse. Всі права захищені.</p>
+        </div>
     </footer>
     
 </body>
