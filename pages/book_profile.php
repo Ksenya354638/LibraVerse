@@ -100,7 +100,7 @@ if (isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <div class="container main-content">
+    <div class="container main-content profile">
         <?php if ($book): ?>
             <div class="row">
                 <div class="col-md-4">
@@ -108,14 +108,14 @@ if (isset($_SESSION['LibrarianID'])) {
         <?php 
             $coverPath = !empty($book['BookCover']) ? $book['BookCover'] : "../images/books_img/no_cover.png";
         ?>
-        <img src="<?php echo htmlspecialchars($coverPath); ?>" 
+        <img class="img-responsive" src="<?php echo htmlspecialchars($coverPath); ?>" 
              alt="Обкладинка: <?php echo htmlspecialchars($book['Title']); ?>" 
              class="img-responsive img-thumbnail"
              style="width: 100%; max-height: 500px; object-fit: contain;">
         </div>
     </div>
 
-                <div class="col-md-5">
+                <div class="col-md-5 book-descript">
                     <h1><?php echo htmlspecialchars($book['Title']); ?></h1>
                     <p><b>Автор:</b> <a href="./author_profile.php?AuthorID=<?php echo $book['AuthorID']; ?>">
                         <?php echo htmlspecialchars($book['Name'] . " " . $book['Surname']); ?></a></p>
@@ -124,14 +124,14 @@ if (isset($_SESSION['LibrarianID'])) {
                     <p><b>Рік:</b> <?php echo htmlspecialchars($book['Year']); ?></p>
                     <p><b>Ціна:</b> <?php echo htmlspecialchars($book['Price']); ?> грн.</p>
                     <p><b>Статус:</b> 
-                        <span class="label <?php echo ($book['Status'] == 'в наявності') ? 'label-success' : 'label-warning'; ?>">
+                        <div class="status-badge <?php echo ($book['Status'] == 'в наявності') ? 'available' : 'taken'; ?>">
                             <?php echo htmlspecialchars($book['Status']); ?>
-                        </span>
+                        </div>
                     </p>
                     
                     <?php if (!empty($book['Abstract'])): ?>
-                        <div class="well" style="margin-top: 20px;">
-                            <p><b>Анотація:</b></p>
+                        <div class="abstract">
+                            <h3>Анотація</h3>
                             <p><?php echo nl2br(htmlspecialchars($book['Abstract'])); ?></p>
                         </div>
                     <?php endif; ?>
@@ -139,20 +139,23 @@ if (isset($_SESSION['LibrarianID'])) {
 
                 <div class="col-md-3 text-right">
                     <form method="POST">
-                        <?php if ($book['Status'] == 'в наявності'): ?>
-                            <button type="submit" name="provide" class="btn btn-success btn-block btn-lg">Видати книгу</button>
+                        <div class="buttons right">
+                            <?php if ($book['Status'] == 'в наявності'): ?>
+                            <button type="submit" name="provide" class="provide">
+                                Видати книгу
+                            </button>
                             <div class="text-muted text-center" style="margin-top: 5px;">
-                                <small>(необхідно спочатку обрати клієнта)</small>
+                                <small>(спочатку оберіть клієнта)</small>
                             </div>
-                        <?php else: ?>
-                            <button class="btn btn-default btn-block btn-lg" disabled>Книга на руках</button>
-                        <?php endif; ?>
-                        
-                        <hr>
-                        <button type="submit" name="delete" class="btn btn-danger btn-block" 
-                                onclick="return confirm('Ви впевнені, що хочете видалити цю книгу з бібліотеки?')">
-                            Видалити з бази
-                        </button>
+                            <?php else: ?>
+                            <div class="status">Книга на руках</div>
+                            <?php endif; ?>
+
+                            <button type="submit" name="delete" class="delete"
+                                onclick="return confirm('Ви впевнені?')">
+                                Видалити з бази
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>

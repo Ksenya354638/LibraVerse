@@ -711,3 +711,30 @@ body .main-content.container {
 .filter-btn.active {
     background-color: #C1121F;
 }
+
+body .main-content.profile {
+    padding-top: 30px;
+}
+
+.main-content .abstract {
+    background-color: #669BBC;
+    color: #FDF0D5;
+    padding: 15px;
+    border-radius: 15px;
+    margin-top: 20px;
+}
+
+.main-content .abstract h3 {
+    margin-top: 0;
+    color: #FDF0D5;
+}
+
+.main-content .abstract p {
+    color: #FDF0D5;
+}
+
+.book-cover-large img {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+}

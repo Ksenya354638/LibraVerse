@@ -151,7 +151,7 @@ if(isset($_SESSION['LibrarianID'])) {
                                 <th>Автор</th>
                                 <th>Клієнт</th>
                                 <th>Видано</th>
-                                <th>Статус</th>
+                                <th>Повернення</th>
                             </tr>
                         </thead>
                         <tbody>
