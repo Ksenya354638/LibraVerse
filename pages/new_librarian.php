@@ -97,76 +97,82 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     <?php endif; ?>
 
-    <div class="row" style="margin-top:20px; display:flex; flex-wrap:wrap; align-items:stretch;">
+    <div class="row librarian-layout">
+    
+    <!-- ФОРМА -->
+    <div class="col-lg-7 col-md-7 col-sm-12 form-container d-flex">
+        <div class="book-form librarian-form">
 
-        <!-- ФОРМА -->
-        <div class="col-lg-6 col-md-6 col-sm-12"
-             style="display:flex;">
+            <h1 class="text-center form-title">
+                Реєстрація працівника
+            </h1>
 
-            <div class="book-form"
-                 style="width:100%;
-                        display:flex;
-                        flex-direction:column;
-                        justify-content:flex-start;
-                        padding:20px;
-                        min-height:600px;">
+            <form method="POST" class="form-vertical">
 
-                <h1 class="text-center" style="margin-bottom:15px;">
-                    Реєстрація працівника
-                </h1>
-
-                <form method="POST" style="display:flex; flex-direction:column; gap:8px;">
-
+                <div class="form-group">
                     <label>Ім'я</label>
                     <input type="text" class="form-input" name="fname" required>
+                </div>
 
+                <div class="form-group">
                     <label>По батькові</label>
                     <input type="text" class="form-input" name="pname" required>
+                </div>
 
+                <div class="form-group">
                     <label>Прізвище</label>
                     <input type="text" class="form-input" name="sname" required>
+                </div>
 
+                <div class="form-group">
                     <label>Адреса</label>
                     <input type="text" class="form-input" name="address" required>
+                </div>
 
+                <div class="form-group">
                     <label>Телефон</label>
                     <input type="text" class="form-input" name="phone" required>
+                </div>
 
+                <div class="form-group">
                     <label>Дата народження</label>
                     <input type="date" class="form-input" name="birthDate" required>
+                </div>
 
+                <div class="form-group">
                     <label>Дата прийому</label>
                     <input type="date" class="form-input" name="employmentDate" required>
+                </div>
 
+                <div class="form-group">
                     <label>Посада</label>
                     <select name="position" class="form-input">
                         <option value="бібліотекар">Бібліотекар</option>
                         <option value="завідуючий">Завідуючий</option>
                     </select>
+                </div>
 
+                <div class="form-group">
                     <label>Пароль</label>
                     <input type="password" class="form-input" name="password" required>
+                </div>
 
-                    <button type="submit"
-                            name="add-librarian"
-                            class="btn btn-primary btn-block"
-                            style="margin-top:10px;">
-                        Зареєструвати
-                    </button>
+                <button type="submit"
+                        name="add-librarian"
+                        class="btn btn-primary btn-block submit-btn">
+                    Зареєструвати
+                </button>
 
-                </form>
-            </div>
+            </form>
         </div>
-
-        <!-- ЗОБРАЖЕННЯ -->
-        <div class="col-lg-6 col-md-6 hidden-xs"
-             style="display:flex; align-items:center; justify-content:center;">
-
-            <img src="../images/add_librarian.png"
-                 style="max-height:600px; width:auto; object-fit:contain;">
-        </div>
-
     </div>
+
+    <!-- ЗОБРАЖЕННЯ -->
+    <div class="col-lg-5 col-md-5 hidden-xs image-container">
+        <img src="../images/add_librarian.png" class="img-responsive librarian-img">
+    </div>
+
+</div>
 </div>
 
     <footer class="footer col-lg-12">
