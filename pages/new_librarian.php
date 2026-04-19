@@ -84,81 +84,100 @@ if(isset($_SESSION['LibrarianID'])) {
     </nav>
 
     <div class="container main-content add" style="padding-top: 20px;">
-        <?php if($success): ?>
-            <div class="validation-msg done" style="margin: 15px 0;">
-                <h2>Успішно! Працівника додано до системи.</h2>
-            </div>
-        <?php endif; ?>
 
-        <?php if($error_msg): ?>
-            <div class='alert alert-danger'><?php echo $error_msg; ?></div>
-        <?php endif; ?>
+    <?php if($success): ?>
+        <div class="alert alert-success text-center">
+            <h4>Успішно! Працівника додано до системи.</h4>
+        </div>
+    <?php endif; ?>
 
-        <div class="row" style="display:flex; align-items:stretch;">
-            <div class="col-lg-6 form-container">
-                <form class="book-form">
-                    <div class="panel-heading"><h3 class="panel-title">Реєстрація працівника</h3></div>
-                    <div class="panel-body">
-                        <form method="POST">
-                            <div class="row">
-                                <div class="col-md-4 form-group">
-                                    <label>Ім'я</label>
-                                    <input type="text" class="form-control" name="fname" required>
-                                </div>
-                                <div class="col-md-4 form-group">
-                                    <label>По батькові</label>
-                                    <input type="text" class="form-control" name="pname" required>
-                                </div>
-                                <div class="col-md-4 form-group">
-                                    <label>Прізвище</label>
-                                    <input type="text" class="form-control" name="sname" required>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Адреса</label>
-                                <input type="text" class="form-control" name="address" required>
-                            </div>
+    <?php if($error_msg): ?>
+        <div class="alert alert-danger text-center">
+            <?php echo $error_msg; ?>
+        </div>
+    <?php endif; ?>
 
-                            <div class="form-group">
-                                <label>Телефон</label>
-                                <input type="text" class="form-control" name="phone" placeholder="+380..." required>
-                            </div>
+    <div class="row" style="display:flex; align-items:stretch;">
+        <div class="col-lg-6 form-container" style="display:flex;">
+            <div class="book-form" style="width:100%; display:flex; flex-direction:column; justify-content:space-between;">
 
-                            <div class="row">
-                                <div class="col-md-6 form-group">
-                                    <label>Дата народження</label>
-                                    <input type="date" class="form-control" name="birthDate" required>
-                                </div>
-                                <div class="col-md-6 form-group">
-                                    <label>Дата прийому</label>
-                                    <input type="date" class="form-control" name="employmentDate" required>
-                                </div>
-                            </div>
+                <h1 class="text-center" style="margin-bottom:20px;">
+                    Реєстрація працівника
+                </h1>
 
-                            <div class="form-group">
-                                <label>Посада</label>
-                                <select name="position" class="form-control">
-                                    <option value="бібліотекар">Бібліотекар</option>
-                                    <option value="завідуючий">Завідуючий</option>
-                                </select>
-                            </div>
+                <form method="POST">
 
-                            <div class="form-group">
-                                <label>Пароль</label>
-                                <input type="password" class="form-control" name="password" required>
-                            </div>
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label>Ім'я</label>
+                            <input type="text" class="form-input" name="fname" required>
+                        </div>
 
-                            <button type="submit" name="add-librarian" class="btn btn-primary btn-block">Зареєструвати</button>
-                        </form>
+                        <div class="col-md-4 form-group">
+                            <label>По батькові</label>
+                            <input type="text" class="form-input" name="pname" required>
+                        </div>
+
+                        <div class="col-md-4 form-group">
+                            <label>Прізвище</label>
+                            <input type="text" class="form-input" name="sname" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Адреса</label>
+                        <input type="text" class="form-input" name="address" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Телефон</label>
+                        <input type="text" class="form-input" name="phone" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Дата народження</label>
+                            <input type="date" class="form-input" name="birthDate" required>
+                        </div>
+
+                        <div class="col-md-6 form-group">
+                            <label>Дата прийому</label>
+                            <input type="date" class="form-input" name="employmentDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Посада</label>
+                        <select name="position" class="form-input">
+                            <option value="бібліотекар">Бібліотекар</option>
+                            <option value="завідуючий">Завідуючий</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Пароль</label>
+                        <input type="password" class="form-input" name="password" required>
+                    </div>
+
+                    <button type="submit"
+                            name="add-librarian"
+                            class="btn btn-primary btn-block"
+                            style="margin-top:15px;">
+                        Зареєструвати
+                    </button>
+
                 </form>
-                </div>
-            </div>
-            <div class="col-lg-6 image hidden-xs">
-                <img src="../images/add_librarian.png" class="img-responsive" style="height:100%; object-fit:contain;">
             </div>
         </div>
+
+        <div class="col-lg-6 hidden-xs" style="display:flex; align-items:center; justify-content:center;">
+            <img src="../images/add_librarian.png"
+                 class="img-responsive"
+                 style="max-height:100%; object-fit:contain;">
+        </div>
+
     </div>
+</div>
     <footer class="footer col-lg-12">
         <div class="col-lg-9 footer-left">
             <p>Слідкуйте за нами:</p>
