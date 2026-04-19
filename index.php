@@ -101,5 +101,5 @@ if(isset($_POST['logIn'])) {
 </body>
 </html>
 <?php
- $conn->close();
+ $conn = null;
  ?>
