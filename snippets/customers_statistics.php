@@ -11,7 +11,7 @@ try {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $row1 = $conn->query("SELECT COUNT(*) AS CustomerNumber FROM customers")->fetch(PDO::FETCH_ASSOC);
-    $row2 = $conn->query("SELECT COUNT(DISTINCT СustomerID) AS CustomerNumber FROM booksProvision WHERE ReturnDate IS NULL OR ReturnDate = '0'")->fetch(PDO::FETCH_ASSOC);
+    $row2 = $conn->query("SELECT COUNT(DISTINCT СustomerID) AS CustomerNumber FROM booksprovision WHERE ReturnDate IS NULL OR ReturnDate = '0'")->fetch(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
     echo "Помилка підключення";
