@@ -83,7 +83,7 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <div class="container main-content add" style="padding-top: 20px;">
+    <div class="container main-content add" style="padding-top: 25px;">
 
     <?php if($success): ?>
         <div class="alert alert-success text-center">
@@ -97,31 +97,30 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     <?php endif; ?>
 
-    <div class="row" style="display:flex; align-items:stretch;">
-        <div class="col-lg-6 form-container" style="display:flex;">
+    <div class="row" style="display:flex; align-items:stretch; gap:20px;">
+
+        <div class="col-lg-6" style="display:flex;">
             <div class="book-form" style="width:100%; display:flex; flex-direction:column; justify-content:space-between;">
 
-                <h1 class="text-center" style="margin-bottom:20px;">
+                <h1 style="text-align:center; font-size:32px; font-weight:700; margin-bottom:25px;">
                     Реєстрація працівника
                 </h1>
 
                 <form method="POST">
 
-                    <div class="row">
-                        <div class="col-md-4 form-group">
-                            <label>Ім'я</label>
-                            <input type="text" class="form-input" name="fname" required>
-                        </div>
+                    <div class="form-group">
+                        <label>Ім'я</label>
+                        <input type="text" class="form-input" name="fname" required>
+                    </div>
 
-                        <div class="col-md-4 form-group">
-                            <label>По батькові</label>
-                            <input type="text" class="form-input" name="pname" required>
-                        </div>
+                    <div class="form-group">
+                        <label>По батькові</label>
+                        <input type="text" class="form-input" name="pname" required>
+                    </div>
 
-                        <div class="col-md-4 form-group">
-                            <label>Прізвище</label>
-                            <input type="text" class="form-input" name="sname" required>
-                        </div>
+                    <div class="form-group">
+                        <label>Прізвище</label>
+                        <input type="text" class="form-input" name="sname" required>
                     </div>
 
                     <div class="form-group">
@@ -134,16 +133,14 @@ if(isset($_SESSION['LibrarianID'])) {
                         <input type="text" class="form-input" name="phone" required>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 form-group">
-                            <label>Дата народження</label>
-                            <input type="date" class="form-input" name="birthDate" required>
-                        </div>
+                    <div class="form-group">
+                        <label>Дата народження</label>
+                        <input type="date" class="form-input" name="birthDate" required>
+                    </div>
 
-                        <div class="col-md-6 form-group">
-                            <label>Дата прийому</label>
-                            <input type="date" class="form-input" name="employmentDate" required>
-                        </div>
+                    <div class="form-group">
+                        <label>Дата прийому</label>
+                        <input type="date" class="form-input" name="employmentDate" required>
                     </div>
 
                     <div class="form-group">
@@ -162,7 +159,7 @@ if(isset($_SESSION['LibrarianID'])) {
                     <button type="submit"
                             name="add-librarian"
                             class="btn btn-primary btn-block"
-                            style="margin-top:15px;">
+                            style="margin-top:20px;">
                         Зареєструвати
                     </button>
 
@@ -170,10 +167,11 @@ if(isset($_SESSION['LibrarianID'])) {
             </div>
         </div>
 
-        <div class="col-lg-6 hidden-xs" style="display:flex; align-items:center; justify-content:center;">
+        <div class="col-lg-6 hidden-xs"
+             style="display:flex; align-items:center; justify-content:center; height:100%;">
+
             <img src="../images/add_librarian.png"
-                 class="img-responsive"
-                 style="max-height:100%; object-fit:contain;">
+                 style="max-height:100%; width:auto; object-fit:contain;">
         </div>
 
     </div>
