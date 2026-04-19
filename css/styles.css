@@ -745,3 +745,32 @@ body .main-content.profile {
     max-height: 420px;
     object-fit: contain;
 }
+.buttons.right form,
+.buttons.right a {
+    width: 100%;
+}
+
+.buttons.right .delete,
+.buttons.right .add {
+    width: 100%;
+    display: block;
+    text-align: center;
+}
+
+.customer-profile .buttons.right form {
+    margin-bottom: 10px;
+}
+
+.customer-profile .buttons.right .delete,
+.customer-profile .buttons.right .add {
+    width: 100%;
+    display: block;
+}
+
+.customer-profile .profile-header {
+    margin-top: 20px;
+}
+
+.customer-profile table {
+    margin-top: 15px;
+}

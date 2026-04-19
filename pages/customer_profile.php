@@ -95,30 +95,38 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <div class="container main-content">
+    <div class="container main-content customer-profile">
         <?php if ($customer): ?>
-            <div class="row profile-header">
-                <div class="col-md-8">
-                    <h1><?php echo htmlspecialchars($customer['Surname'] . " " . $customer['FirstName']); ?></h1>
-                    <p><b>Адреса:</b> <?php echo htmlspecialchars($customer['Address']); ?></p>
-                    <p><b>Телефон:</b> <?php echo htmlspecialchars($customer['PhoneNumber']); ?></p>
-                    <p><b>Робота:</b> <?php echo htmlspecialchars($customer['Employment']); ?></p>
-                </div>
-                <div class="col-md-4 text-right">
-                    <form method="POST" onsubmit="return confirm('Видалити клієнта?')">
-                        <button type="submit" name="delete" class="btn btn-danger">Видалити профіль</button>
-                    </form>
-                    <form method="POST" class="mt-2">
-                        <button type="submit" name="provide" class="btn btn-success">Видати нову книгу</button>
-                    </form>
-                </div>
-            </div>
+            <div class="row profile-header" style="margin-top: 20px;">
+    <div class="col-md-8 book-descript">
+        <h1><?php echo htmlspecialchars($customer['Surname'] . " " . $customer['FirstName']); ?></h1>
+        <p><b>Адреса:</b> <?php echo htmlspecialchars($customer['Address']); ?></p>
+        <p><b>Телефон:</b> <?php echo htmlspecialchars($customer['PhoneNumber']); ?></p>
+        <p><b>Робота:</b> <?php echo htmlspecialchars($customer['Employment']); ?></p>
+    </div>
+
+    <div class="col-md-4 buttons right" style="margin-top: 10px;">
+        
+        <form method="POST" onsubmit="return confirm('Видалити клієнта?')" style="margin-bottom:10px;">
+            <button type="submit" name="delete" class="delete" style="width:100%;">
+                Видалити профіль
+            </button>
+        </form>
+
+        <form method="POST">
+            <button type="submit" name="provide" class="add" style="width:100%;">
+                Видати нову книгу
+            </button>
+        </form>
+
+    </div>
+</div>
 
             <hr>
 
             <h3>Книги на руках:</h3>
-            <table class="table table-bordered">
-                <tr class="info">
+            <table class="table result-table col-lg-12" style="margin-top:15px;">
+                <tr>
                     <th>ID</th><th>Книга</th><th>Бібліотекар</th><th>Дата видачі</th><th>Дія</th>
                 </tr>
                 <?php if (empty($activeBooks)): ?>
@@ -142,8 +150,8 @@ if(isset($_SESSION['LibrarianID'])) {
             </table>
 
             <h3 class="mt-5">Історія повернутих книг:</h3>
-            <table class="table table-condensed">
-                <tr class="active">
+            <table class="table result-table col-lg-12" style="margin-top:15px;">
+                <tr>
                     <th>ID</th><th>Книга</th><th>Видано</th><th>Повернено</th>
                 </tr>
                 <?php if (empty($historyBooks)): ?>

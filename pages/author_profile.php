@@ -99,7 +99,7 @@ if(isset($_SESSION['LibrarianID'])){
 
     <?php if ($author) { ?>
     <div class="container main-content profile">
-            <div class="row">
+        <div class="row">
     <div class="col-lg-8 book-descript">
         <h1><?php echo $author['Name'];?> <?php echo $author['Surname'];?></h1>
         <p><b>Роки життя:</b> <?php echo $author['BirthYear'];?> - <?php echo $author['DeathYear'];?></p>
@@ -107,17 +107,17 @@ if(isset($_SESSION['LibrarianID'])){
     </div>
 
     <div class="col-lg-4 buttons right">
-        <form method="POST" onsubmit="return confirm('Ви впевнені?');">
-            <button type="submit" name="delete" class="delete">
+        <form method="POST" onsubmit="return confirm('Ви впевнені?');" style="width:100%;">
+            <button type="submit" name="delete" class="delete" style="width:100%;">
                 Видалити автора та його книги
             </button>
         </form>
 
-        <a href="./new_book.php?AuthorID=<?php echo $authorID; ?>" class="add">
+        <a href="./new_book.php?AuthorID=<?php echo $authorID; ?>" class="add" style="width:100%;">
             Додати книгу
         </a>
     </div>
-    </div>
+</div>
 
             <hr>
             <h2>Книги автора:</h2>
