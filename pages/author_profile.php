@@ -98,8 +98,7 @@ if(isset($_SESSION['LibrarianID'])){
     </nav>
 
     <?php if ($author) { ?>
-    <div class="main-content profile">
-        <div class="container">
+    <div class="container main-content profile">
             <div class="row">
                 <div class="col-lg-8">
                     <h1><?php echo $author['Name'];?> <?php echo $author['Surname'];?></h1>
@@ -118,23 +117,32 @@ if(isset($_SESSION['LibrarianID'])){
             <h2>Книги автора:</h2>
             <div class="row">
                 <?php while ($book = $stmt2->fetch(PDO::FETCH_ASSOC)) { ?>
-                <div class="col-lg-3 text-center">
-                    <img src="<?php echo $book['BookCover']; ?>" style="width:100%; max-width:150px;">
-                    <h4><a href="./book_profile.php?BookID=<?php echo $book['BookID']; ?>"><?php echo $book['Title']; ?></a></h4>
-                    <p>Статус: <?php echo $book['Status']; ?></p>
-                    <?php if ($book['Status'] === 'в наявності') { ?>
-                        <form method="POST">
-                            <input type="hidden" name="BookID" value="<?php echo $book['BookID']; ?>">
-                            <button type="submit" name="provide" class="btn btn-success">Видати</button>
-                        </form>
-                    <?php } ?>
-                </div>
+                <div class="col-lg-3 about-book">
+    <div class="book-description">
+        <img src="<?php echo $book['BookCover']; ?>" class="img-responsive">
+        <h3>
+            <a href="./book_profile.php?BookID=<?php echo $book['BookID']; ?>">
+                <?php echo htmlspecialchars($book['Title']); ?>
+            </a>
+        </h3>
+        <p class="status"><?php echo $book['Status']; ?></p>
+        <?php if ($book['Status'] === 'в наявності') { ?>
+            <form method="POST">
+                <input type="hidden" name="BookID" value="<?php echo $book['BookID']; ?>">
+                <button type="submit" name="provide" class="provide">
+                    Видати
+                </button>
+            </form>
+        <?php } ?>
+    </div>
+</div>
                 <?php } ?>
             </div>
-        </div>
     </div>
     <?php } else { ?>
-        <div class="alert alert-danger">Автора не знайдено! <a href="./author_list.php">Назад до списку</a></div>
+        <div class="validation-msg">
+            <h2>Автора не знайдено! <a href="./author_list.php">Назад</a></h2>
+        </div>
     <?php } ?>
 
     <footer class="footer col-lg-12">

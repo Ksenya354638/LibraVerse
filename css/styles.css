@@ -397,7 +397,14 @@ body .main-content.profile .book-cover img, body .main-content .book-cover img{
 }
 .main-content .buttons.right{
     display: flex;
-    justify-content: end;
+    flex-direction: column;   
+    align-items: flex-end;    
+    gap: 10px;                
+}
+.main-content .buttons .provide,
+.main-content .buttons .delete {
+    width: 100%;
+    max-width: 250px;
 }
 body .main-content.profile .book-descript a{
     color: #780000;
