@@ -104,33 +104,39 @@ if(isset($_SESSION['LibrarianID'])) {
             <h1 class="text-center">Журнал видачі книг</h1>
         </div>
 
-        <div class="row info-stats" style="margin-bottom: 20px;">
-            <div class="col-md-4">
-                <div class="well text-center" style="background-color: #fcf8e3;">
-                    <h4>Не повернуто</h4>
-                    <span class="h3 text-danger"><?php echo $count_not_returned; ?></span>
-                </div>
+        <div class="row info-stats">
+        <div class="col-md-4">
+            <div class="stat-card danger">
+                <h4>Не повернуто</h4>
+                <span><?php echo $count_not_returned; ?></span>
             </div>
-            <div class="col-md-4">
-                <div class="well text-center" style="background-color: #dff0d8;">
+        </div>
+        <div class="col-md-4">
+                <div class="stat-card success">
                     <h4>Повернуто</h4>
-                    <span class="h3 text-success"><?php echo $count_returned; ?></span>
+                    <span><?php echo $count_returned; ?></span>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="well text-center">
+                <div class="stat-card neutral">
                     <h4>Всього видач</h4>
-                    <span class="h3"><?php echo $count_all; ?></span>
+                    <span><?php echo $count_all; ?></span>
                 </div>
             </div>
         </div>
 
         <div class="row" style="margin-bottom: 20px;">
             <div class="col-lg-12">
-                <form class="btn-group btn-group-justified" method="POST">
-                    <div class="btn-group"><button type="submit" name="select" value="not_returned" class="btn btn-default">Тільки заборгованості</button></div>
-                    <div class="btn-group"><button type="submit" name="select" value="returned" class="btn btn-default">Тільки повернуті</button></div>
-                    <div class="btn-group"><button type="submit" name="select" value="all" class="btn btn-primary">Усі записи</button></div>
+                <form class="filter-buttons" method="POST">
+                    <button type="submit" name="select" value="not_returned" class="filter-btn">
+                        Тільки заборгованості
+                    </button>
+                    <button type="submit" name="select" value="returned" class="filter-btn">
+                        Тільки повернуті
+                    </button>
+                    <button type="submit" name="select" value="all" class="filter-btn active">
+                        Усі записи
+                    </button>
                 </form>
             </div>
         </div>
@@ -138,7 +144,7 @@ if(isset($_SESSION['LibrarianID'])) {
         <div class="row">
             <div class="col-lg-12">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table class="result-table table table-hover">
                         <thead>
                             <tr class="active">
                                 <th>Книга</th>
@@ -152,13 +158,13 @@ if(isset($_SESSION['LibrarianID'])) {
                             <?php foreach ($provisions as $row): 
                                 $is_returned = !is_null($row['ReturnDate']);
                             ?>
-                            <tr class="<?php echo $is_returned ? '' : 'warning'; ?>">
+                            <tr class="<?php echo $is_returned ? '' : 'not-returned'; ?>">
                                 <td><a href="book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></td>
                                 <td><?php echo htmlspecialchars($row['aName'] . " " . $row['aSurname']); ?></td>
                                 <td><a href="customer_profile.php?CustomerID=<?php echo $row['CustomerID']; ?>"><?php echo htmlspecialchars($row['FirstName'] . " " . $row['cSurname']); ?></a></td>
                                 <td><?php echo $row['ReceiptDate']; ?></td>
                                 <td>
-                                    <?php echo $is_returned ? $row['ReturnDate'] : '<span class="label label-danger">На руках</span>'; ?>
+                                    <?php echo $is_returned ? $row['ReturnDate'] : '<span class="status-badge taken">На руках</span>'; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

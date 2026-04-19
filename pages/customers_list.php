@@ -64,11 +64,13 @@ if(isset($_SESSION['LibrarianID'])) {
         <div class="table-header">
             <h1 class="text-center">Список клієнтів</h1>
         </div>
-        <div class="mb-3">
-            <a href="./new_customer.php" class="btn btn-primary">Зареєструвати нового користувача</a>
+        <div class="action-button">
+            <a href="./new_customer.php" class="btn btn-primary">
+                Зареєструвати нового користувача
+            </a>
         </div>                
         <div class="table-responsive">
-            <table class="table table-striped result-table">
+            <table class="result-table table table-hover">
                 <thead>
                     <tr>
                         <th>ID</th>

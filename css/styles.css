@@ -647,3 +647,71 @@ body .main-content.container {
     background-color: #C1121F;
     color: #FDF0D5;
 }
+
+.main-content .action-button {
+    margin-bottom: 20px;
+}
+
+.info-stats {
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.stat-card h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.stat-card span {
+    font-size: 28px;
+}
+
+.stat-card.danger {
+    background-color: #C1121F;
+    color: #FDF0D5;
+}
+
+.stat-card.success {
+    background-color: #669BBC;
+    color: #FDF0D5;
+}
+
+.stat-card.neutral {
+    background-color: #FDF0D5;
+    color: #003049;
+    border: 2px solid #669BBC;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-btn {
+    flex: 1;
+    background-color: #669BBC;
+    color: #FDF0D5;
+    border: none;
+    border-radius: 15px;
+    padding: 8px;
+    font-weight: bold;
+}
+
+.filter-btn:hover {
+    background-color: #003049;
+}
+
+.filter-btn.active {
+    background-color: #C1121F;
+}
+
+.result-table tr.not-returned {
+    background-color: #FADBD8 !important;
+}
