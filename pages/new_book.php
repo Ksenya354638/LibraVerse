@@ -91,9 +91,12 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <div class="container main-content add">
+    <div class="container main-content add" style="padding-top: 20px;">
         <?php if($msg == "success"): ?>
-            <div class="alert alert-success">Книгу успішно додано!</div>
+            <div class="validation-msg done col-lg-12">
+                <img src="../images/done.svg" alt="done">
+                <h2>Книгу успішно додано!</h2>
+            </div>
         <?php endif; ?>
 
         <div class="row">
@@ -141,8 +144,8 @@ if(isset($_SESSION['LibrarianID'])) {
                     <input type="submit" name="add-book" value="Зберегти книгу" class="btn btn-primary btn-block">
                 </form>
             </div>
-            <div class="col-lg-6 hidden-xs">
-                <img src="../images/add_book.png" class="img-responsive" style="margin-top: 50px;">
+            <div class="col-lg-6 hidden-xs image">
+                <img src="../images/add_book.png" class="img-responsive">
             </div>
         </div>
     </div>

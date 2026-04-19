@@ -791,3 +791,58 @@ body .main-content.profile {
     background-color: #669BBC;
     color: #FDF0D5;
 }
+
+/* ===== NEW BOOK / NEW AUTHOR FIX ===== */
+
+.main-content.add .row{
+    display: flex;
+    align-items: stretch;
+    gap: 30px;
+}
+
+/* форма і зображення однакової висоти */
+.main-content.add .form-container,
+.main-content.add .image{
+    display: flex;
+    flex: 1;
+}
+
+.main-content.add .book-form{
+    width: 100%;
+    height: 100%;
+}
+
+/* фікс для select (було бліде і нечитабельне) */
+.main-content select.form-input{
+    background-color: #FDF0D5;
+    color: #003049;
+    border-radius: 15px;
+    border: none;
+    padding: 6px 12px;
+}
+
+/* вирівнювання інпутів */
+.main-content .form-input{
+    margin-bottom: 10px;
+}
+
+/* ===== VALIDATION FIX ===== */
+.validation-msg{
+    margin: 15px 0;
+    background-color: #FDF0D5;
+    border: 3px solid #C1121F;
+    border-radius: 15px;
+    align-items: center;
+    gap: 10px;
+}
+
+.validation-msg.done{
+    border-color: #669BBC;
+}
+
+.btn-primary,
+.btn-success,
+.btn-danger{
+    border-radius: 15px !important;
+    font-weight: bold;
+}

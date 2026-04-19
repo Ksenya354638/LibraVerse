@@ -95,9 +95,9 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <div class="container main-content">
+    <div class="container main-content customer-profile">
         <?php if ($librarian): ?>
-            <div class="row profile-info">
+            <div class="row profile-info book-descript">
                 <div class="col-md-8">
                     <h1><?php echo htmlspecialchars("{$librarian['Surname']} {$librarian['FirstName']} {$librarian['ParentalName']}"); ?></h1>
                     <p><b>ID:</b> <?php echo $librarian['LibrarianID']; ?></p>

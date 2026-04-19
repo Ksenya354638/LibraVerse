@@ -101,7 +101,7 @@ if (isset($_SESSION['LibrarianID'])) {
                 </form>
             </div>
             <div class="col-lg-6 image hidden-xs">
-                <img src="../images/add_author.png" alt="author" class="img-responsive">
+                <img src="../images/add_author.png" class="img-responsive">
             </div>
         </div>
     </div>
