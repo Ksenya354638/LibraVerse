@@ -83,11 +83,10 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <div class="container" style="margin-top: 30px;">
+    <div class="container main-content add" style="padding-top: 20px;">
         <?php if($success): ?>
-            <div class='alert alert-success text-center'>
+            <div class="validation-msg done" style="margin: 15px 0;">
                 <h2>Успішно! Працівника додано до системи.</h2>
-                <a href="librarians_list.php" class="btn btn-success">До списку</a>
             </div>
         <?php endif; ?>
 
@@ -95,9 +94,9 @@ if(isset($_SESSION['LibrarianID'])) {
             <div class='alert alert-danger'><?php echo $error_msg; ?></div>
         <?php endif; ?>
 
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <div class="panel panel-default">
+        <div class="row" style="display:flex; align-items:stretch;">
+            <div class="col-lg-6 form-container">
+                <form class="book-form">
                     <div class="panel-heading"><h3 class="panel-title">Реєстрація працівника</h3></div>
                     <div class="panel-body">
                         <form method="POST">
@@ -152,8 +151,11 @@ if(isset($_SESSION['LibrarianID'])) {
 
                             <button type="submit" name="add-librarian" class="btn btn-primary btn-block">Зареєструвати</button>
                         </form>
-                    </div>
+                </form>
                 </div>
+            </div>
+            <div class="col-lg-6 image hidden-xs">
+                <img src="../images/add_librarian.png" class="img-responsive" style="height:100%; object-fit:contain;">
             </div>
         </div>
     </div>

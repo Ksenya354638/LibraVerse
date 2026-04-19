@@ -91,7 +91,7 @@ if(isset($_SESSION['LibrarianID'])) {
     </nav>
 
     <?php if($success): ?>
-    <div class='validation-msg done' style="margin: 20px auto; max-width: 600px;">
+    <div class="validation-msg done" style="margin: 15px 0;">
         <img src='../images/done.svg' alt='done' style="width: 50px;">
         <h2 class='validation-text'>Клієнта успішно додано до системи</h2>      
     </div>
@@ -103,7 +103,8 @@ if(isset($_SESSION['LibrarianID'])) {
     </div>
     <?php endif; ?>
 
-    <div class="container main-content add">
+    <div class="container main-content add" style="padding-top: 20px;">
+        <div class="row" style="display:flex; align-items:stretch;">
         <div class="col-lg-6 form-container">
             <form class="book-form" method="POST">
                 <h1 class="text-center">Реєстрація користувача</h1>
@@ -125,7 +126,8 @@ if(isset($_SESSION['LibrarianID'])) {
             </form>
         </div>
         <div class="col-lg-6 image hidden-xs">
-            <img src="../images/add_user.png" class="img-responsive" alt="reader">
+            <img src="../images/add_user.png" class="img-responsive" style="height:100%; object-fit:contain;">
+        </div>
         </div>
     </div>
 
