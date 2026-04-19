@@ -1,34 +1,51 @@
 <?php
 session_start();
 
-// Підключення до БД (використовуйте ваші налаштування з Render/Aiven)
+// Отримання параметрів з оточення
 $host = getenv('DB_HOST');
-$port = getenv('DB_PORT');
+$port = getenv('DB_PORT') ?: '3306'; 
 $dbname = getenv('DB_NAME');
 $user = getenv('DB_USER');
 $pass = getenv('DB_PASSWORD');
 
+$conn = null;
+$db_error = false;
+
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Додаємо порт у DSN для стабільної роботи на Render
+    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
+    $conn = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_TIMEOUT => 7,
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    ]);
 } catch (PDOException $e) {
     $db_error = true;
 }
 
 if(isset($_SESSION['LibrarianID'])) {
     $success = false;
+    
     if(isset($_POST['add-customer'])){
-        $query = $conn->prepare("INSERT INTO customers (FirstName, ParentalName, Surname, Address, PhoneNumber, Employment) 
-                                 VALUES (?, ?, ?, ?, ?, ?)");
-        $query->execute([
-            $_POST['fname'], 
-            $_POST['pname'], 
-            $_POST['sname'], 
-            $_POST['address'], 
-            $_POST['phone'], 
-            $_POST['employment']
-        ]);
-        $success = true;
+        // Перевіряємо, чи підключення успішне, перед запитом
+        if ($conn) {
+            try {
+                $query = $conn->prepare("INSERT INTO customers (FirstName, ParentalName, Surname, Address, PhoneNumber, Employment) 
+                                         VALUES (?, ?, ?, ?, ?, ?)");
+                $query->execute([
+                    $_POST['fname'], 
+                    $_POST['pname'], 
+                    $_POST['sname'], 
+                    $_POST['address'], 
+                    $_POST['phone'], 
+                    $_POST['employment']
+                ]);
+                $success = true;
+            } catch (PDOException $e) {
+                $db_error = true;
+            }
+        } else {
+            $db_error = true;
+        }
     }
 
     if (isset($_GET['logOut'])){
@@ -74,9 +91,15 @@ if(isset($_SESSION['LibrarianID'])) {
     </nav>
 
     <?php if($success): ?>
-    <div class='validation-msg done'>
-        <img src='../images/done.svg' alt='done'>
-        <h2 class='validation-text'>Клієнта успішно додано до системи</h2>     
+    <div class='validation-msg done' style="margin: 20px auto; max-width: 600px;">
+        <img src='../images/done.svg' alt='done' style="width: 50px;">
+        <h2 class='validation-text'>Клієнта успішно додано до системи</h2>      
+    </div>
+    <?php endif; ?>
+
+    <?php if($db_error): ?>
+    <div class='validation-msg error' style="margin: 20px auto; max-width: 600px; background: #f2dede; padding: 15px; border-radius: 5px;">
+        <h2 class='validation-text' style="color: #a94442;">Помилка бази даних. Перевірте з'єднання.</h2>      
     </div>
     <?php endif; ?>
 
@@ -106,11 +129,6 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     </div>
 
-    <footer class="footer col-lg-12 text-center">
-        <p>© 2026 LibraVerse. Всі права захищені.</p>
-    </footer>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
     <footer class="footer col-lg-12">
         <div class="col-lg-9 footer-left">
             <p>Слідкуйте за нами:</p>
@@ -125,11 +143,14 @@ if(isset($_SESSION['LibrarianID'])) {
             <p>© 2026 LibraVerse. Всі права захищені.</p>
         </div>
     </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
 </body>
 </html>
 <?php
 } else {
-    // Сторінка помилки авторизації
-    include 'error_auth.php'; // Рекомендую винести цей HTML в окремий файл, щоб не дублювати
+    header("Location: ../index.php");
+    exit;
 }
 ?>
