@@ -111,65 +111,84 @@ if (isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <div class="main-content container">
+    <div class="main-content">
+    
+    <div class="table-header">
         <h1 class="text-center">Книжковий каталог</h1>
-        
-        <div class="row">
-            <div class="col-lg-3">
-                <div class="side-menu">
-                    <form method="POST">
-                        <h3>Оберіть категорію</h3>
-                        <button type="submit" name="sort" value="all" class="btn btn-link">Всі книги</button><br>
-                        <button type="submit" name="sort" value="fiction" class="btn btn-link">Художня література</button><br>
-                        <button type="submit" name="sort" value="medical" class="btn btn-link">Медична література</button><br>
-                        <button type="submit" name="sort" value="technical" class="btn btn-link">Технічна література</button><br>
-                        <button type="submit" name="sort" value="economic" class="btn btn-link">Економічна література</button><br>
-                        <button type="submit" name="sort" value="computer" class="btn btn-link">Комп'ютерна література</button><br>
-                        <button type="submit" name="sort" value="natural" class="btn btn-link">Природознавча література</button><br>
-                        <button type="submit" name="sort" value="legal" class="btn btn-link">Юридична література</button><br>
-                    </form>
-                </div>
-                <div class="mt-4">
-                    <a href="./new_book.php" class="btn btn-primary btn-block">Додати книгу</a>
-                </div>                
-            </div>
+    </div>
 
-            <div class="col-lg-9 books-list">
-                <div class="row">
-                <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { ?>
-                    <div class="about-book col-md-4 col-sm-6">
-                        <div class="book-cover">
-                            <img src="<?php echo htmlspecialchars($row['BookCover']); ?>" alt="обкладинка" class="img-responsive">
-                        </div>
-                        <div class="book-description">
-                            <h4><a href="./book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></h4>
-                            <p class="author">
-                                <a href="./author_profile.php?AuthorID=<?php echo $row['AuthorID']; ?>">
-                                    <?php echo htmlspecialchars($row['Name'] . ' ' . $row['Surname']); ?>
-                                </a>
-                            </p>
-                            <div class="row">
-                                <div class="col-xs-6">
-                                    <?php if ($row['Status'] === 'в наявності') { ?>
-                                        <form method="POST">
-                                            <input type="hidden" name="BookID" value="<?php echo $row['BookID']; ?>">
-                                            <button class="btn btn-sm btn-success" type="submit" name="provide">Видати</button>
-                                        </form>
-                                    <?php } ?>
-                                </div>
-                                <div class="col-xs-6">
-                                    <span class="label <?php echo ($row['Status'] === 'в наявності') ? 'label-success' : 'label-warning'; ?>">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="side-menu">
+                <form method="POST">
+                    <h3 class="text-center">Оберіть категорію</h3>
+                    <button type="submit" name="sort" value="all">Всі книги</button><br>
+                    <button type="submit" name="sort" value="fiction">Художня література</button><br>
+                    <button type="submit" name="sort" value="medical">Медична література</button><br>
+                    <button type="submit" name="sort" value="technical">Технічна література</button><br>
+                    <button type="submit" name="sort" value="economic">Економічна література</button><br>
+                    <button type="submit" name="sort" value="computer">Комп'ютерна література</button><br>
+                    <button type="submit" name="sort" value="natural">Природознавча література</button><br>
+                    <button type="submit" name="sort" value="legal">Юридична література</button><br>
+                </form>
+            </div>
+            <div class="button">
+                <a href="./new_book.php" class="add">додати книгу</a>
+            </div>
+        </div>
+        <div class="col-lg-9">
+            <div class="row">
+            <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { ?>
+                
+                <div class="about-book col-md-4 col-sm-6">
+                    
+                    <div class="book-cover">
+                        <img src="<?php echo htmlspecialchars($row['BookCover']); ?>" alt="обкладинка">
+                    </div>
+
+                    <div class="book-description">
+                        
+                        <h3>
+                            <a href="./book_profile.php?BookID=<?php echo $row['BookID']; ?>">
+                                <?php echo htmlspecialchars($row['Title']); ?>
+                            </a>
+                        </h3>
+
+                        <p class="author">
+                            <a href="./author_profile.php?AuthorID=<?php echo $row['AuthorID']; ?>">
+                                <?php echo htmlspecialchars($row['Name'] . ' ' . $row['Surname']); ?>
+                            </a>
+                        </p>
+
+                        <div class="row">
+                            
+                            <div class="col-xs-6">
+                                <?php if ($row['Status'] === 'в наявності') { ?>
+                                    <form method="POST">
+                                        <input type="hidden" name="BookID" value="<?php echo $row['BookID']; ?>">
+                                        <button class="provide" type="submit" name="provide">Видати</button>
+                                    </form>
+                                <?php } ?>
+                            </div>
+
+                            <div class="col-xs-6">
+                                <div class="buttons">
+                                    <div class="status">
                                         <?php echo htmlspecialchars($row['Status']); ?>
-                                    </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>                    
-                    </div>
-                <?php } ?>
+
+                        </div>
+
+                    </div>                    
                 </div>
+
+            <?php } ?>
             </div>
         </div>
     </div>
+</div>
 
     <footer class="footer col-lg-12">
         <div class="col-lg-9 footer-left">
