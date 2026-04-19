@@ -83,7 +83,7 @@ if(isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <div class="container main-content add" style="padding-top: 25px;">
+    <div class="container main-content add" style="padding-top:20px;">
 
     <?php if($success): ?>
         <div class="alert alert-success text-center">
@@ -96,93 +96,79 @@ if(isset($_SESSION['LibrarianID'])) {
             <?php echo $error_msg; ?>
         </div>
     <?php endif; ?>
-    <div class="row add-librarian-wrapper" style="display:flex; flex-wrap:wrap; gap:20px; align-items:stretch;">
 
-    <div class="col-lg-7 col-md-7 col-sm-12 form-container" style="display:flex;">
-        <div class="book-form"
-             style="width:100%; display:flex; flex-direction:column; padding:25px; box-sizing:border-box;">
+    <div class="row" style="margin-top:20px; display:flex; flex-wrap:wrap; align-items:stretch;">
 
-            <h1 class="text-center" style="margin-bottom:15px;">
-                Реєстрація працівника
-            </h1>
+        <!-- ФОРМА -->
+        <div class="col-lg-6 col-md-6 col-sm-12"
+             style="display:flex;">
 
-            <form method="POST">
+            <div class="book-form"
+                 style="width:100%;
+                        display:flex;
+                        flex-direction:column;
+                        justify-content:flex-start;
+                        padding:20px;
+                        min-height:600px;">
 
-                <div class="row">
-                    <div class="col-md-4 form-group" style="margin-bottom:10px;">
-                        <label>Ім'я</label>
-                        <input type="text" class="form-input" name="fname" required>
-                    </div>
+                <h1 class="text-center" style="margin-bottom:15px;">
+                    Реєстрація працівника
+                </h1>
 
-                    <div class="col-md-4 form-group" style="margin-bottom:10px;">
-                        <label>По батькові</label>
-                        <input type="text" class="form-input" name="pname" required>
-                    </div>
+                <form method="POST" style="display:flex; flex-direction:column; gap:8px;">
 
-                    <div class="col-md-4 form-group" style="margin-bottom:10px;">
-                        <label>Прізвище</label>
-                        <input type="text" class="form-input" name="sname" required>
-                    </div>
-                </div>
+                    <label>Ім'я</label>
+                    <input type="text" class="form-input" name="fname" required>
 
-                <div class="form-group" style="margin-bottom:10px;">
+                    <label>По батькові</label>
+                    <input type="text" class="form-input" name="pname" required>
+
+                    <label>Прізвище</label>
+                    <input type="text" class="form-input" name="sname" required>
+
                     <label>Адреса</label>
                     <input type="text" class="form-input" name="address" required>
-                </div>
 
-                <div class="form-group" style="margin-bottom:10px;">
                     <label>Телефон</label>
                     <input type="text" class="form-input" name="phone" required>
-                </div>
 
-                <div class="row">
-                    <div class="col-md-6 form-group" style="margin-bottom:10px;">
-                        <label>Дата народження</label>
-                        <input type="date" class="form-input" name="birthDate" required>
-                    </div>
+                    <label>Дата народження</label>
+                    <input type="date" class="form-input" name="birthDate" required>
 
-                    <div class="col-md-6 form-group" style="margin-bottom:10px;">
-                        <label>Дата прийому</label>
-                        <input type="date" class="form-input" name="employmentDate" required>
-                    </div>
-                </div>
+                    <label>Дата прийому</label>
+                    <input type="date" class="form-input" name="employmentDate" required>
 
-                <div class="form-group" style="margin-bottom:10px;">
                     <label>Посада</label>
                     <select name="position" class="form-input">
                         <option value="бібліотекар">Бібліотекар</option>
                         <option value="завідуючий">Завідуючий</option>
                     </select>
-                </div>
 
-                <div class="form-group" style="margin-bottom:10px;">
                     <label>Пароль</label>
                     <input type="password" class="form-input" name="password" required>
-                </div>
 
-                <button type="submit"
-                        name="add-librarian"
-                        class="btn btn-primary btn-block"
-                        style="margin-top:10px;">
-                    Зареєструвати
-                </button>
+                    <button type="submit"
+                            name="add-librarian"
+                            class="btn btn-primary btn-block"
+                            style="margin-top:10px;">
+                        Зареєструвати
+                    </button>
 
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
 
-    <div class="col-lg-5 col-md-5 col-sm-12 image"
-         style="display:flex; align-items:center; justify-content:center; min-height:100%;">
+        <!-- ЗОБРАЖЕННЯ -->
+        <div class="col-lg-6 col-md-6 hidden-xs"
+             style="display:flex; align-items:center; justify-content:center;">
 
-        <img src="../images/add_librarian.png"
-             class="img-responsive"
-             style="max-height:520px; width:auto; object-fit:contain;">
-    </div>
-
-</div>
+            <img src="../images/add_librarian.png"
+                 style="max-height:600px; width:auto; object-fit:contain;">
+        </div>
 
     </div>
 </div>
+
     <footer class="footer col-lg-12">
         <div class="col-lg-9 footer-left">
             <p>Слідкуйте за нами:</p>
