@@ -596,3 +596,54 @@ body .main-content .table h2{
     border: #669BBC 3px solid;
 }
 
+body .main-content.container {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Контейнер кнопки і статусу */
+.book-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Кнопка */
+.provide-btn {
+    background-color: #669BBC;
+    color: #FDF0D5;
+    border: none;
+    border-radius: 15px;
+    padding: 6px 12px;
+    font-weight: bold;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.provide-btn:hover {
+    background-color: #003049;
+}
+
+.status-badge {
+    border-radius: 15px;
+    padding: 6px 12px;
+    font-weight: bold;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-badge.available {
+    background-color: #FDF0D5;
+    color: #669BBC;
+    border: 2px solid #669BBC;
+}
+
+.status-badge.taken {
+    background-color: #C1121F;
+    color: #FDF0D5;
+}

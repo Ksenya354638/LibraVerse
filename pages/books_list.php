@@ -111,7 +111,7 @@ if (isset($_SESSION['LibrarianID'])) {
         </div>
     </nav>
 
-    <div class="main-content">
+    <div class="main-content container">
     
     <div class="table-header">
         <h1 class="text-center">Книжковий каталог</h1>
@@ -160,25 +160,16 @@ if (isset($_SESSION['LibrarianID'])) {
                             </a>
                         </p>
 
-                        <div class="row">
-                            
-                            <div class="col-xs-6">
-                                <?php if ($row['Status'] === 'в наявності') { ?>
-                                    <form method="POST">
-                                        <input type="hidden" name="BookID" value="<?php echo $row['BookID']; ?>">
-                                        <button class="provide" type="submit" name="provide">Видати</button>
-                                    </form>
+                        <div class="book-actions">
+                            <?php if ($row['Status'] === 'в наявності') { ?>
+                            <form method="POST" class="provide-form">
+                                <input type="hidden" name="BookID" value="<?php echo $row['BookID']; ?>">
+                                <button class="provide-btn" type="submit" name="provide">Видати</button>
+                            </form>
                                 <?php } ?>
+                            <div class="status-badge <?php echo ($row['Status'] === 'в наявності') ? 'available' : 'taken'; ?>">
+                                <?php echo htmlspecialchars($row['Status']); ?>
                             </div>
-
-                            <div class="col-xs-6">
-                                <div class="buttons">
-                                    <div class="status">
-                                        <?php echo htmlspecialchars($row['Status']); ?>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
 
                     </div>                    

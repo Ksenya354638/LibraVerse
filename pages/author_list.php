@@ -74,7 +74,7 @@ if(isset($_SESSION['LibrarianID'])){
         </div>
     </nav>
 
-    <div class="main-content">
+    <div class="main-content container">
         <div class="table-header"><h1 class="text-center">Каталог авторів</h1></div>
         <div class="row">
             <div class="col-lg-3">
