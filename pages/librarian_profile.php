@@ -35,7 +35,7 @@ if(isset($_SESSION['LibrarianID'])) {
             $stmt2 = $conn->prepare("SELECT bp.ProvisionID, b.BookID, b.Title, 
                                             c.CustomerID, c.FirstName, c.Surname, 
                                             bp.ReceiptDate, bp.ReturnDate 
-                                     FROM booksProvision bp 
+                                     FROM booksprovision bp 
                                      JOIN books b ON bp.BookID = b.BookID 
                                      JOIN customers c ON bp.CustomerID = c.CustomerID 
                                      WHERE bp.LibrarianID = ?
