@@ -146,7 +146,7 @@ if(isset($_SESSION['LibrarianID'])) {
                 <div class="table-responsive">
                     <table class="result-table table table-hover">
                         <thead>
-                            <tr class="active">
+                            <tr>
                                 <th>Книга</th>
                                 <th>Автор</th>
                                 <th>Клієнт</th>

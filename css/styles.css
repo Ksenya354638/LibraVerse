@@ -711,7 +711,3 @@ body .main-content.container {
 .filter-btn.active {
     background-color: #C1121F;
 }
-
-.result-table tr.not-returned {
-    background-color: #FADBD8 !important;
-}
