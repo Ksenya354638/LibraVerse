@@ -141,7 +141,14 @@ if(isset($_SESSION['LibrarianID'])) {
                         <td>
                             <form method="POST">
                                 <input type="hidden" name="bookID" value="<?php echo $row['BookID']; ?>">
-                                <button type="submit" name="return" value="<?php echo $row['ProvisionID']; ?>" class="btn btn-xs btn-warning">Повернуто</button>
+                                    <button 
+                                        type="submit" 
+                                        name="return" 
+                                        value="<?php echo $row['ProvisionID']; ?>" 
+                                        class="provide"
+                                        style="width:100%; margin-top:5px;">
+                                    Повернуто
+                                </button>
                             </form>
                         </td>
                     </tr>

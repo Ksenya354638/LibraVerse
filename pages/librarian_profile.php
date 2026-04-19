@@ -106,9 +106,13 @@ if(isset($_SESSION['LibrarianID'])) {
                     <p><b>Адреса:</b> <?php echo htmlspecialchars($librarian['Address']); ?></p>
                 </div>
                 <div class="col-md-4 text-right">
-                    <form method="POST" onsubmit="return confirm('Видалити цього працівника?');">
-                        <button type="submit" name="delete" class="btn btn-danger">Видалити профіль</button>
-                    </form>
+                    <div class="buttons right" style="margin-top:20px;">
+                        <form method="POST" onsubmit="return confirm('Видалити цього працівника?');">
+                            <button type="submit" name="delete" class="delete" style="width:100%;">
+                                Видалити профіль
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
@@ -116,7 +120,7 @@ if(isset($_SESSION['LibrarianID'])) {
                 <div class="col-md-12">
                     <h3>Історія видач:</h3>
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table result-table col-lg-12">
                             <thead>
                                 <tr>
                                     <th>Книга</th>
@@ -131,7 +135,7 @@ if(isset($_SESSION['LibrarianID'])) {
                                     <td><a href="book_profile.php?BookID=<?php echo $row['BookID']; ?>"><?php echo htmlspecialchars($row['Title']); ?></a></td>
                                     <td><a href="customer_profile.php?CustomerID=<?php echo $row['CustomerID']; ?>"><?php echo htmlspecialchars($row['Surname']); ?></a></td>
                                     <td><?php echo $row['ReceiptDate']; ?></td>
-                                    <td><?php echo $row['ReturnDate'] ?: '<span class="label label-warning">На руках</span>'; ?></td>
+                                    <td><?php echo $row['ReturnDate'] ?: '<span class="status-badge taken">На руках</span>'; ?></td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>

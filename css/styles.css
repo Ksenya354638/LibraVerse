@@ -774,3 +774,20 @@ body .main-content.profile {
 .customer-profile table {
     margin-top: 15px;
 }
+
+.status-badge {
+    border-radius: 15px;
+    padding: 3px 10px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.status-badge.taken {
+    background-color: #C1121F;
+    color: #FDF0D5;
+}
+
+.status-badge.ok {
+    background-color: #669BBC;
+    color: #FDF0D5;
+}
