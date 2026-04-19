@@ -100,18 +100,24 @@ if(isset($_SESSION['LibrarianID'])){
     <?php if ($author) { ?>
     <div class="container main-content profile">
             <div class="row">
-                <div class="col-lg-8">
-                    <h1><?php echo $author['Name'];?> <?php echo $author['Surname'];?></h1>
-                    <p><b>Роки життя:</b> <?php echo $author['BirthYear'];?> - <?php echo $author['DeathYear'];?></p>
-                    <div class="biography"><?php echo $author['Biography']; ?></div>
-                </div>
-                <div class="col-lg-4">
-                    <form method="POST" onsubmit="return confirm('Ви впевнені?');">
-                        <input class="btn btn-danger" type="submit" name="delete" value="Видалити автора та його книги">
-                    </form>
-                    <a href="./new_book.php?AuthorID=<?php echo $authorID; ?>" class="btn btn-primary">Додати книгу</a>
-                </div>
-            </div>
+    <div class="col-lg-8 book-descript">
+        <h1><?php echo $author['Name'];?> <?php echo $author['Surname'];?></h1>
+        <p><b>Роки життя:</b> <?php echo $author['BirthYear'];?> - <?php echo $author['DeathYear'];?></p>
+        <div class="biography"><?php echo $author['Biography']; ?></div>
+    </div>
+
+    <div class="col-lg-4 buttons right">
+        <form method="POST" onsubmit="return confirm('Ви впевнені?');">
+            <button type="submit" name="delete" class="delete">
+                Видалити автора та його книги
+            </button>
+        </form>
+
+        <a href="./new_book.php?AuthorID=<?php echo $authorID; ?>" class="add">
+            Додати книгу
+        </a>
+    </div>
+    </div>
 
             <hr>
             <h2>Книги автора:</h2>

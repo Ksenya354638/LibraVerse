@@ -144,9 +144,6 @@ if (isset($_SESSION['LibrarianID'])) {
                             <button type="submit" name="provide" class="provide">
                                 Видати книгу
                             </button>
-                            <div class="text-muted text-center" style="margin-top: 5px;">
-                                <small>(спочатку оберіть клієнта)</small>
-                            </div>
                             <?php else: ?>
                             <div class="status">Книга на руках</div>
                             <?php endif; ?>
