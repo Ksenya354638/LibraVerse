@@ -53,7 +53,7 @@ if (isset($_SESSION['LibrarianID'])) {
             $date = date("Y-m-d");
 
             $provideStmt = $conn->prepare("INSERT INTO booksProvision (BookID, CustomerID, LibrarianID, ReceiptDate, ReturnDate) 
-                                           VALUES (?, ?, ?, ?, '0')");
+                                           VALUES (?, ?, ?, ?, NULL)");
             $provideStmt->execute([$bookID, $customerID, $librarianID, $date]);
 
             $updateStmt = $conn->prepare("UPDATE books SET Status = 'на руках' WHERE BookID = ?");
