@@ -52,7 +52,7 @@ if (isset($_SESSION['LibrarianID'])) {
             $librarianID = $_SESSION['LibrarianID'];
             $date = date("Y-m-d");
 
-            $provideStmt = $conn->prepare("INSERT INTO booksProvision (BookID, CustomerID, LibrarianID, ReceiptDate, ReturnDate) 
+            $provideStmt = $conn->prepare("INSERT INTO booksprovision (BookID, CustomerID, LibrarianID, ReceiptDate, ReturnDate) 
                                            VALUES (?, ?, ?, ?, NULL)");
             $provideStmt->execute([$bookID, $customerID, $librarianID, $date]);
 
