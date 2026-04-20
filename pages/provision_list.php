@@ -189,15 +189,16 @@ if (isset($_POST['return_provision_id'])) {
                                 <td><?php echo $row['ReceiptDate']; ?></td>
                                 <td>
                                     <?php if ($is_returned): ?>
-                                        <span class="text-success" style="font-weight: bold;">
+                                        <span class="return-date">
                                             Повернуто: <?php echo $row['ReturnDate']; ?>
                                         </span>
                                     <?php else: ?>
                                         <form method="POST" style="display:inline-block;">
                                             <input type="hidden" name="return_provision_id" value="<?php echo $row['ProvisionID']; ?>">
                                             <input type="hidden" name="return_book_id" value="<?php echo $row['BookID']; ?>">
-                                            <button type="submit" class="btn btn-xs btn-success" 
-                                                    onclick="return confirm('Підтвердити повернення книги?')">
+                                            <button type="submit"
+                                                class="btn btn-primary btn-sm return-btn"
+                                                onclick="return confirm('Підтвердити повернення книги?')">
                                                 Повернути книгу
                                             </button>
                                         </form>

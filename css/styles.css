@@ -899,3 +899,13 @@ select.form-input{
     background: #FDF0D5;
     border: 3px solid #669BBC;
 }
+
+.return-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.return-date {
+    font-weight: 500;
+    color: #333;
+}
