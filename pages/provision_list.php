@@ -53,6 +53,30 @@ if(isset($_SESSION['LibrarianID'])) {
             $filter = " WHERE bp.ReturnDate IS NULL";
         }
     }
+
+    // Обробка повернення книги
+if (isset($_POST['return_provision_id'])) {
+    $pID = $_POST['return_provision_id'];
+    $bID = $_POST['return_book_id'];
+
+    try {
+        $conn->beginTransaction();
+
+        $stmt1 = $conn->prepare("UPDATE booksprovision SET ReturnDate = CURDATE() WHERE ProvisionID = ?");
+        $stmt1->execute([$pID]);
+
+        $stmt2 = $conn->prepare("UPDATE books SET Status = 'в наявності' WHERE BookID = ?");
+        $stmt2->execute([$bID]);
+
+        $conn->commit();
+    
+        header("Location: ./provision_list.php");
+        exit;
+    } catch (Exception $e) {
+        $conn->rollBack();
+        echo "<script>alert('Помилка при поверненні книги');</script>";
+    }
+}
     
     $full_query = $query . $filter . " ORDER BY bp.ReceiptDate DESC";
     $provisions = $conn->query($full_query)->fetchAll(PDO::FETCH_ASSOC);
@@ -151,7 +175,7 @@ if(isset($_SESSION['LibrarianID'])) {
                                 <th>Автор</th>
                                 <th>Клієнт</th>
                                 <th>Видано</th>
-                                <th>Повернення</th>
+                                <th style="min-width: 150px;">Статус / Повернення</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -164,7 +188,23 @@ if(isset($_SESSION['LibrarianID'])) {
                                 <td><a href="customer_profile.php?CustomerID=<?php echo $row['CustomerID']; ?>"><?php echo htmlspecialchars($row['FirstName'] . " " . $row['cSurname']); ?></a></td>
                                 <td><?php echo $row['ReceiptDate']; ?></td>
                                 <td>
-                                    <?php echo $is_returned ? $row['ReturnDate'] : '<span class="status-badge taken">На руках</span>'; ?>
+                                    <?php if ($is_returned): ?>
+                                        <span class="text-success" style="font-weight: bold;">
+                                            Повернуто: <?php echo $row['ReturnDate']; ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <form method="POST" style="display:inline-block;">
+                                            <input type="hidden" name="return_provision_id" value="<?php echo $row['ProvisionID']; ?>">
+                                            <input type="hidden" name="return_book_id" value="<?php echo $row['BookID']; ?>">
+                                            <button type="submit" class="btn btn-xs btn-success" 
+                                                    onclick="return confirm('Підтвердити повернення книги?')">
+                                                Повернути книгу
+                                            </button>
+                                        </form>
+                                        <div style="margin-top: 5px;">
+                                            <span class="status-badge taken">На руках</span>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
